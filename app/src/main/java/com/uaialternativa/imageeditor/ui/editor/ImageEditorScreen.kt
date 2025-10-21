@@ -90,6 +90,10 @@ import coil.request.ImageRequest
 import com.uaialternativa.imageeditor.R
 import com.uaialternativa.imageeditor.domain.model.EditingTool
 import com.uaialternativa.imageeditor.ui.editor.crop.CropOverlay
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 /**
  * Main image editor screen with toolbar and tool-specific controls
@@ -160,7 +164,7 @@ fun ImageEditorScreen(
         },
         sheetPeekHeight = if (uiState.selectedTool != EditingTool.None) 200.dp else 0.dp,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        modifier = modifier
+        modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -195,6 +199,7 @@ fun ImageEditorScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .windowInsetsPadding(WindowInsets.navigationBars)
             )
         }
     }

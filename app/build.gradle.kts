@@ -77,6 +77,9 @@ dependencies {
     // Coil for image loading
     implementation(libs.coil.compose)
     
+    // ExifInterface for image orientation handling
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
+    
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
