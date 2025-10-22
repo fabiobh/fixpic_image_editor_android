@@ -34,7 +34,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -49,7 +48,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -57,7 +55,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -107,7 +104,6 @@ fun ImageEditorScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val scaffoldState = rememberBottomSheetScaffoldState()
     var showUnsavedChangesDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
@@ -137,8 +133,7 @@ fun ImageEditorScreen(
         }
     }
 
-    BottomSheetScaffold(
-        scaffoldState = scaffoldState,
+    Scaffold(
         topBar = {
             ImageEditorTopBar(
                 onNavigateBack = {
@@ -154,22 +149,14 @@ fun ImageEditorScreen(
                 onRedo = { viewModel.handleAction(ImageEditorAction.Redo) }
             )
         },
-        sheetContent = {
-            ToolControlPanel(
-                selectedTool = uiState.selectedTool,
-                uiState = uiState,
-                onAction = viewModel::handleAction,
-                modifier = Modifier.fillMaxWidth()
-            )
-        },
-        sheetPeekHeight = if (uiState.selectedTool != EditingTool.None) 200.dp else 0.dp,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
+        modifier = modifier
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .windowInsetsPadding(WindowInsets.navigationBars)
         ) {
             // Main image display area
             ImageDisplayArea(
@@ -187,6 +174,18 @@ fun ImageEditorScreen(
                     .padding(16.dp)
             )
 
+            // Tool-specific control panel (when a tool is selected)
+            if (uiState.selectedTool != EditingTool.None) {
+                ToolControlPanel(
+                    selectedTool = uiState.selectedTool,
+                    uiState = uiState,
+                    onAction = viewModel::handleAction,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                )
+            }
+
             // Toolbar with editing tools
             EditorToolbar(
                 selectedTool = uiState.selectedTool,
@@ -199,7 +198,6 @@ fun ImageEditorScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .windowInsetsPadding(WindowInsets.navigationBars)
             )
         }
     }
@@ -1152,75 +1150,137 @@ private fun FilterPanel(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
+    Card(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
-        Text(
-            text = stringResource(R.string.filter_tool_title),
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        
-        Text(
-            text = stringResource(R.string.filter_tool_description),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        
-        // Filter selection row
-        Text(
-            text = stringResource(R.string.available_filters),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(com.uaialternativa.imageeditor.domain.model.FilterType.values()) { filterType ->
-                FilterPreviewCard(
-                    filterType = filterType,
-                    isSelected = selectedFilter == filterType,
-                    onClick = { onFilterSelected(filterType) }
-                )
-            }
-        }
-        
-        // Applied filters section (show if any filters are applied)
-        if (appliedFilters.isNotEmpty()) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            // Header with title and action buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                Text(
+                    text = stringResource(R.string.filter_tool_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onCancel,
+                        modifier = Modifier.height(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Cancel", style = MaterialTheme.typography.labelMedium)
+                    }
+                    
+                    Button(
+                        onClick = onApplyFilter,
+                        enabled = selectedFilter != null,
+                        modifier = Modifier.height(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Apply", style = MaterialTheme.typography.labelMedium)
+                    }
+                }
+            }
+            
+            // Filter selection row
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(com.uaialternativa.imageeditor.domain.model.FilterType.values()) { filterType ->
+                    CompactFilterCard(
+                        filterType = filterType,
+                        isSelected = selectedFilter == filterType,
+                        onClick = { onFilterSelected(filterType) }
+                    )
+                }
+            }
+            
+            // Intensity slider (only show when a filter is selected)
+            if (selectedFilter != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "Intensity",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.width(60.dp)
+                    )
+                    
+                    Slider(
+                        value = filterIntensity,
+                        onValueChange = onIntensityChanged,
+                        valueRange = 0f..1f,
+                        steps = 19,
+                        modifier = Modifier.weight(1f)
+                    )
+                    
+                    Text(
+                        text = "${(filterIntensity * 100).toInt()}%",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.width(40.dp)
+                    )
+                }
+            }
+            
+            // Applied filters section (show if any filters are applied)
+            if (appliedFilters.isNotEmpty()) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = stringResource(R.string.applied_filters, appliedFilters.size),
-                        style = MaterialTheme.typography.titleMedium,
+                        text = "Applied (${appliedFilters.size})",
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     if (appliedFilters.size > 1) {
                         TextButton(
-                            onClick = onClearAllFilters
+                            onClick = onClearAllFilters,
+                            modifier = Modifier.height(32.dp)
                         ) {
                             Text(
-                                text = stringResource(R.string.clear_all_filters),
-                                style = MaterialTheme.typography.labelMedium
+                                text = "Clear All",
+                                style = MaterialTheme.typography.labelSmall
                             )
                         }
                     }
                 }
                 
                 LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     items(appliedFilters) { appliedFilter ->
-                        AppliedFilterChip(
+                        CompactAppliedFilterChip(
                             appliedFilter = appliedFilter,
                             onRemove = { onRemoveFilter(appliedFilter.id) }
                         )
@@ -1228,181 +1288,39 @@ private fun FilterPanel(
                 }
             }
         }
-        
-        // Intensity slider (only show when a filter is selected)
-        if (selectedFilter != null) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.filter_intensity),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "${(filterIntensity * 100).toInt()}%",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                
-                Slider(
-                    value = filterIntensity,
-                    onValueChange = onIntensityChanged,
-                    valueRange = 0f..1f,
-                    steps = 19, // 20 steps total (0%, 5%, 10%, ..., 100%)
-                    modifier = Modifier.fillMaxWidth()
-                )
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "0%",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "100%",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-        
-        // Action buttons
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            OutlinedButton(
-                onClick = onCancel,
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Cancel")
-            }
-            
-            Button(
-                onClick = onApplyFilter,
-                enabled = selectedFilter != null,
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Apply")
-            }
-        }
     }
 }
 
 /**
- * Individual filter preview card
+ * Compact filter card for horizontal layout
  */
 @Composable
-private fun FilterPreviewCard(
+private fun CompactFilterCard(
     filterType: com.uaialternativa.imageeditor.domain.model.FilterType,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val borderColor = if (isSelected) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-    }
-    
     val backgroundColor = if (isSelected) {
         MaterialTheme.colorScheme.primaryContainer
     } else {
-        MaterialTheme.colorScheme.surface
+        MaterialTheme.colorScheme.surfaceVariant
+    }
+    
+    val contentColor = if (isSelected) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
     }
     
     Card(
         modifier = modifier
-            .size(width = 80.dp, height = 100.dp)
-            .clickable { onClick() }
-            .border(
-                width = if (isSelected) 2.dp else 1.dp,
-                color = borderColor,
-                shape = RoundedCornerShape(8.dp)
-            ),
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (isSelected) 4.dp else 2.dp
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            // Filter preview icon/representation
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        color = getFilterPreviewColor(filterType),
-                        shape = RoundedCornerShape(6.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = getFilterIcon(filterType),
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            
-            Text(
-                text = getFilterDisplayName(filterType),
-                style = MaterialTheme.typography.labelSmall,
-                color = if (isSelected) {
-                    MaterialTheme.colorScheme.onPrimaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurface
-                },
-                textAlign = TextAlign.Center,
-                maxLines = 2
-            )
-        }
-    }
-}
-
-/**
- * Chip showing an applied filter with remove option
- */
-@Composable
-private fun AppliedFilterChip(
-    appliedFilter: AppliedFilter,
-    onRemove: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(12.dp)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -1412,35 +1330,71 @@ private fun AppliedFilterChip(
             // Filter color indicator
             Box(
                 modifier = Modifier
-                    .size(12.dp)
+                    .size(16.dp)
                     .background(
-                        color = getFilterPreviewColor(appliedFilter.filterType),
-                        shape = RoundedCornerShape(6.dp)
+                        color = getFilterPreviewColor(filterType),
+                        shape = RoundedCornerShape(8.dp)
                     )
             )
             
-            Column {
-                Text(
-                    text = getFilterDisplayName(appliedFilter.filterType),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-                Text(
-                    text = "${(appliedFilter.intensity * 100).toInt()}%",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-                )
-            }
+            Text(
+                text = getFilterDisplayName(filterType),
+                style = MaterialTheme.typography.labelMedium,
+                color = contentColor,
+                maxLines = 1
+            )
+        }
+    }
+}
+
+/**
+ * Compact chip showing an applied filter with remove option
+ */
+@Composable
+private fun CompactAppliedFilterChip(
+    appliedFilter: AppliedFilter,
+    onRemove: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            // Filter color indicator
+            Box(
+                modifier = Modifier
+                    .size(10.dp)
+                    .background(
+                        color = getFilterPreviewColor(appliedFilter.filterType),
+                        shape = RoundedCornerShape(5.dp)
+                    )
+            )
+            
+            Text(
+                text = "${getFilterDisplayName(appliedFilter.filterType)} ${(appliedFilter.intensity * 100).toInt()}%",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                maxLines = 1
+            )
             
             IconButton(
                 onClick = onRemove,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(16.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(R.string.remove_filter),
+                    contentDescription = "Remove filter",
                     tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(12.dp)
                 )
             }
         }

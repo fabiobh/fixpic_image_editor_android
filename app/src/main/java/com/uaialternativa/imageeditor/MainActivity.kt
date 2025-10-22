@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.uaialternativa.imageeditor.R
+import com.uaialternativa.imageeditor.domain.model.SavedImage
 import com.uaialternativa.imageeditor.ui.editor.ImageEditorScreen
 import com.uaialternativa.imageeditor.ui.editor.ImageEditorViewModel
 import com.uaialternativa.imageeditor.ui.gallery.GalleryScreen
@@ -122,8 +123,7 @@ fun ImageEditorApp() {
         is Screen.Gallery -> {
             GalleryScreen(
                 onImageSelected = { savedImage ->
-                    // TODO: Navigate to image editor screen with saved image
-                    // This will be implemented in a future task
+                    currentScreen = Screen.EditorFromSaved(savedImage)
                 },
                 onAddImageClicked = launchImagePicker,
                 isImagePickerLoading = isImagePickerLoading,
@@ -138,6 +138,21 @@ fun ImageEditorApp() {
             // Load the image when entering editor screen
             androidx.compose.runtime.LaunchedEffect(screen.imageUri) {
                 editorViewModel.loadImage(screen.imageUri, screen.fileName)
+            }
+            
+            ImageEditorScreen(
+                onNavigateBack = { currentScreen = Screen.Gallery },
+                modifier = Modifier.fillMaxSize(),
+                viewModel = editorViewModel
+            )
+        }
+        is Screen.EditorFromSaved -> {
+            val editorViewModel: ImageEditorViewModel = hiltViewModel()
+            
+            // Load the saved image when entering editor screen
+            androidx.compose.runtime.LaunchedEffect(screen.savedImage.id) {
+                val imageUri = Uri.fromFile(java.io.File(screen.savedImage.filePath))
+                editorViewModel.loadImage(imageUri, screen.savedImage.originalFileName ?: screen.savedImage.fileName)
             }
             
             ImageEditorScreen(
@@ -241,6 +256,7 @@ private fun PermissionDeniedDialog(
 sealed class Screen {
     object Gallery : Screen()
     data class Editor(val imageUri: Uri, val fileName: String?) : Screen()
+    data class EditorFromSaved(val savedImage: SavedImage) : Screen()
 }
 
 @Preview(showBackground = true)

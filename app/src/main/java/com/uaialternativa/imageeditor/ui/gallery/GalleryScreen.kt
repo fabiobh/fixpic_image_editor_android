@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
@@ -159,6 +160,7 @@ fun GalleryScreen(
                 ImageGrid(
                     images = uiState.images,
                     onImageClick = onImageSelected,
+                    onImageEdit = onImageSelected,
                     onImageDelete = { imageId ->
                         viewModel.deleteImage(imageId)
                     },
@@ -258,6 +260,7 @@ private fun EmptyState(
 private fun ImageGrid(
     images: List<SavedImage>,
     onImageClick: (SavedImage) -> Unit,
+    onImageEdit: (SavedImage) -> Unit,
     onImageDelete: (String) -> Unit,
     onImageShare: (SavedImage) -> Unit,
     isDeleting: Boolean,
@@ -278,6 +281,7 @@ private fun ImageGrid(
             ImageGridItem(
                 image = image,
                 onClick = { onImageClick(image) },
+                onEdit = { onImageEdit(image) },
                 onDelete = { onImageDelete(image.id) },
                 onShare = { onImageShare(image) },
                 isDeleting = isDeleting && deletingImageId == image.id
@@ -294,6 +298,7 @@ private fun ImageGrid(
 private fun ImageGridItem(
     image: SavedImage,
     onClick: () -> Unit,
+    onEdit: () -> Unit,
     onDelete: () -> Unit,
     onShare: () -> Unit,
     isDeleting: Boolean,
@@ -383,6 +388,20 @@ private fun ImageGridItem(
                 expanded = showContextMenu,
                 onDismissRequest = { showContextMenu = false }
             ) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.edit)) },
+                    onClick = {
+                        showContextMenu = false
+                        onEdit()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null
+                        )
+                    }
+                )
+                
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.share)) },
                     onClick = {

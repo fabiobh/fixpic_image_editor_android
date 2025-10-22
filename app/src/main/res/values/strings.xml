@@ -9,6 +9,7 @@
     <string name="empty_gallery_message">Start editing your first image by tapping the + button</string>
     <string name="share">Share</string>
     <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
     <string name="share_image">Share image</string>
     
     <!-- Image Editor Screen -->
