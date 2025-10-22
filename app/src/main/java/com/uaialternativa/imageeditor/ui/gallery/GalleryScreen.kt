@@ -1,9 +1,8 @@
 package com.uaialternativa.imageeditor.ui.gallery
 
 import android.content.Intent
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -159,7 +158,6 @@ fun GalleryScreen(
             else -> {
                 ImageGrid(
                     images = uiState.images,
-                    onImageClick = onImageSelected,
                     onImageEdit = onImageSelected,
                     onImageDelete = { imageId ->
                         viewModel.deleteImage(imageId)
@@ -254,12 +252,11 @@ private fun EmptyState(
 }
 
 /**
- * Grid of images with support for click and long-press interactions
+ * Grid of images with context menu on click
  */
 @Composable
 private fun ImageGrid(
     images: List<SavedImage>,
-    onImageClick: (SavedImage) -> Unit,
     onImageEdit: (SavedImage) -> Unit,
     onImageDelete: (String) -> Unit,
     onImageShare: (SavedImage) -> Unit,
@@ -280,7 +277,6 @@ private fun ImageGrid(
         ) { image ->
             ImageGridItem(
                 image = image,
-                onClick = { onImageClick(image) },
                 onEdit = { onImageEdit(image) },
                 onDelete = { onImageDelete(image.id) },
                 onShare = { onImageShare(image) },
@@ -291,13 +287,11 @@ private fun ImageGrid(
 }
 
 /**
- * Individual image item in the grid with context menu support
+ * Individual image item in the grid with context menu on click
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ImageGridItem(
     image: SavedImage,
-    onClick: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onShare: () -> Unit,
@@ -314,10 +308,7 @@ private fun ImageGridItem(
     Card(
         modifier = modifier
             .aspectRatio(1f)
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = { showContextMenu = true }
-            )
+            .clickable { showContextMenu = true }
             .semantics {
                 contentDescription = "Image ${image.fileName}, created ${dateFormatter.format(Date(image.createdAt))}"
             },
