@@ -202,7 +202,7 @@ class ImageEditorViewModel @Inject constructor(
     private fun selectFilter(filterType: FilterType) {
         _uiState.value = _uiState.value.copy(
             selectedFilter = filterType,
-            filterIntensity = 1.0f,
+            filterIntensity = 0.5f,
             isFilterApplied = false,
             previewImage = null
         )

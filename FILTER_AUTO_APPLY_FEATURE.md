@@ -61,7 +61,13 @@ Implementei a funcionalidade solicitada onde:
 
 ## Comportamento Esperado
 
-1. **Seleção de filtro**: Sepia é aplicado instantaneamente
+1. **Seleção de filtro**: Sepia é aplicado instantaneamente com intensidade de 50%
 2. **Ajuste de intensidade**: Após parar de mover por 1 segundo, filtro é reaplicado
 3. **Botão dinâmico**: Mostra "Done" em vez de "Apply"
 4. **Confirmação**: Clique em "Done" confirma e fecha a ferramenta
+
+## Configuração de Intensidade
+
+- **Valor padrão**: 50% (0.5f) em vez de 100% (1.0f)
+- **Aplicação**: Tanto no estado inicial quanto ao selecionar um novo filtro
+- **Justificativa**: Intensidade de 50% oferece um efeito mais sutil e natural como ponto de partida

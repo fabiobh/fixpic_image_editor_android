@@ -19,7 +19,7 @@ data class ImageEditorUiState(
     val resizeWidth: Int? = null,
     val resizeHeight: Int? = null,
     val selectedFilter: FilterType? = null,
-    val filterIntensity: Float = 1.0f,
+    val filterIntensity: Float = 0.5f,
     val appliedFilters: List<AppliedFilter> = emptyList(),
     val appliedOperations: List<ImageOperation> = emptyList(),
     val operationHistory: List<ImageEditorHistoryState> = emptyList(),

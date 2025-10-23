@@ -546,15 +546,33 @@ private fun ToolButton(
             onClick = onClick,
             enabled = enabled,
             modifier = Modifier
-                .size(56.dp)
+                .size(64.dp)
                 .semantics {
                     contentDescription = "$label tool"
-                },
-            shape = RoundedCornerShape(12.dp)
+                }
+                .background(
+                    color = if (isSelected && enabled) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant
+                    },
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .border(
+                    width = if (isSelected) 2.dp else 1.dp,
+                    color = if (isSelected && enabled) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                    },
+                    shape = RoundedCornerShape(16.dp)
+                ),
+            shape = RoundedCornerShape(16.dp)
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
+                modifier = Modifier.size(28.dp),
                 tint = if (isSelected && enabled) {
                     MaterialTheme.colorScheme.primary
                 } else if (enabled) {
@@ -597,22 +615,27 @@ private fun SaveButton(
             onClick = onClick,
             enabled = enabled && !isSaving,
             modifier = Modifier
-                .size(56.dp)
+                .size(64.dp)
                 .semantics {
                     contentDescription = "Save image"
                 },
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(16.dp),
+            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onSecondary
+            )
         ) {
             if (isSaving) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    strokeWidth = 2.dp
+                    modifier = Modifier.size(28.dp),
+                    color = MaterialTheme.colorScheme.onSecondary,
+                    strokeWidth = 3.dp
                 )
             } else {
                 Icon(
                     imageVector = Icons.Default.Done,
-                    contentDescription = null
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp)
                 )
             }
         }
@@ -624,7 +647,8 @@ private fun SaveButton(
                 MaterialTheme.colorScheme.onSurface
             } else {
                 MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-            }
+            },
+            fontWeight = FontWeight.Medium
         )
     }
 }/**
