@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 /**
@@ -36,6 +38,7 @@ class ImageEditorViewModel @Inject constructor(
 
     private val maxHistorySize = 20
     private var originalFileName: String? = null
+    private var filterPreviewJob: Job? = null
 
     /**
      * Load an image from URI into the editor
@@ -90,6 +93,8 @@ class ImageEditorViewModel @Inject constructor(
             is ImageEditorAction.SelectFilter -> selectFilter(action.filterType)
             is ImageEditorAction.SetFilterIntensity -> setFilterIntensity(action.intensity)
             is ImageEditorAction.ApplyFilter -> applyFilter()
+            is ImageEditorAction.ApplyFilterPreview -> applyFilterPreview()
+            is ImageEditorAction.CommitFilterPreview -> commitFilterPreview()
             is ImageEditorAction.RemoveFilter -> removeFilter(action.filterId)
             is ImageEditorAction.ClearAllFilters -> clearAllFilters()
             is ImageEditorAction.Undo -> undo()
@@ -197,17 +202,40 @@ class ImageEditorViewModel @Inject constructor(
     private fun selectFilter(filterType: FilterType) {
         _uiState.value = _uiState.value.copy(
             selectedFilter = filterType,
-            filterIntensity = 1.0f
+            filterIntensity = 1.0f,
+            isFilterApplied = false,
+            previewImage = null
         )
+        
+        // Automatically apply preview when filter is selected
+        applyFilterPreview()
     }
 
     private fun setFilterIntensity(intensity: Float) {
         _uiState.value = _uiState.value.copy(
             filterIntensity = intensity.coerceIn(0.0f, 1.0f)
         )
+        
+        // Cancel previous preview job and start a new one with delay
+        filterPreviewJob?.cancel()
+        filterPreviewJob = viewModelScope.launch {
+            delay(1000) // Wait 1 second after user stops moving the slider
+            applyFilterPreview()
+        }
     }
 
     private fun applyFilter() {
+        // If filter is already applied as preview, just commit it
+        if (_uiState.value.isFilterApplied) {
+            commitFilterPreview()
+        } else {
+            // Apply filter directly (fallback for old behavior)
+            applyFilterPreview()
+            commitFilterPreview()
+        }
+    }
+
+    private fun applyFilterPreview() {
         val currentState = _uiState.value
         val image = currentState.editedImage ?: return
         val filterType = currentState.selectedFilter ?: return
@@ -218,39 +246,53 @@ class ImageEditorViewModel @Inject constructor(
 
             applyFilterUseCase(image, filterType, intensity)
                 .onSuccess { filteredImage ->
-                    val operation = ImageOperation.Filter(filterType, intensity)
-                    val newOperations = currentState.appliedOperations + operation
-                    
-                    // Create applied filter for stacking
-                    val appliedFilter = AppliedFilter(
-                        id = java.util.UUID.randomUUID().toString(),
-                        filterType = filterType,
-                        intensity = intensity
-                    )
-                    val newAppliedFilters = currentState.appliedFilters + appliedFilter
-                    
-                    addToHistory(
-                        image = filteredImage,
-                        operations = newOperations,
-                        description = "${filterType.name} filter applied"
-                    )
-
                     _uiState.value = _uiState.value.copy(
-                        editedImage = filteredImage,
-                        appliedOperations = newOperations,
-                        appliedFilters = newAppliedFilters,
-                        selectedTool = EditingTool.None,
-                        selectedFilter = null,
+                        previewImage = filteredImage,
+                        isFilterApplied = true,
                         isProcessing = false
                     )
                 }
                 .onFailure { error ->
                     _uiState.value = _uiState.value.copy(
                         isProcessing = false,
-                        error = "Failed to apply filter: ${error.message}"
+                        error = "Failed to apply filter preview: ${error.message}"
                     )
                 }
         }
+    }
+
+    private fun commitFilterPreview() {
+        val currentState = _uiState.value
+        val previewImage = currentState.previewImage ?: return
+        val filterType = currentState.selectedFilter ?: return
+        val intensity = currentState.filterIntensity
+
+        val operation = ImageOperation.Filter(filterType, intensity)
+        val newOperations = currentState.appliedOperations + operation
+        
+        // Create applied filter for stacking
+        val appliedFilter = AppliedFilter(
+            id = java.util.UUID.randomUUID().toString(),
+            filterType = filterType,
+            intensity = intensity
+        )
+        val newAppliedFilters = currentState.appliedFilters + appliedFilter
+        
+        addToHistory(
+            image = previewImage,
+            operations = newOperations,
+            description = "${filterType.name} filter applied"
+        )
+
+        _uiState.value = _uiState.value.copy(
+            editedImage = previewImage,
+            appliedOperations = newOperations,
+            appliedFilters = newAppliedFilters,
+            selectedTool = EditingTool.None,
+            selectedFilter = null,
+            isFilterApplied = false,
+            previewImage = null
+        )
     }
 
     private fun removeFilter(filterId: String) {

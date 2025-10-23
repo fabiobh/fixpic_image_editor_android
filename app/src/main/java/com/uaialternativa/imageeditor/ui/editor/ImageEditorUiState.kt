@@ -28,7 +28,9 @@ data class ImageEditorUiState(
     val canRedo: Boolean = false,
     val error: String? = null,
     val isSaving: Boolean = false,
-    val saveSuccess: Boolean = false
+    val saveSuccess: Boolean = false,
+    val isFilterApplied: Boolean = false,
+    val previewImage: Bitmap? = null
 )
 
 /**
@@ -63,6 +65,8 @@ sealed class ImageEditorAction {
     data class SelectFilter(val filterType: FilterType) : ImageEditorAction()
     data class SetFilterIntensity(val intensity: Float) : ImageEditorAction()
     object ApplyFilter : ImageEditorAction()
+    object ApplyFilterPreview : ImageEditorAction()
+    object CommitFilterPreview : ImageEditorAction()
     data class RemoveFilter(val filterId: String) : ImageEditorAction()
     object ClearAllFilters : ImageEditorAction()
     object Undo : ImageEditorAction()

@@ -160,7 +160,7 @@ fun ImageEditorScreen(
         ) {
             // Main image display area
             ImageDisplayArea(
-                bitmap = uiState.editedImage,
+                bitmap = uiState.previewImage ?: uiState.editedImage,
                 isLoading = uiState.isLoading,
                 isProcessing = uiState.isProcessing,
                 selectedTool = uiState.selectedTool,
@@ -678,7 +678,8 @@ private fun ToolControlPanel(
                     onApplyFilter = { onAction(ImageEditorAction.ApplyFilter) },
                     onRemoveFilter = { filterId -> onAction(ImageEditorAction.RemoveFilter(filterId)) },
                     onClearAllFilters = { onAction(ImageEditorAction.ClearAllFilters) },
-                    onCancel = { onAction(ImageEditorAction.SelectTool(EditingTool.None)) }
+                    onCancel = { onAction(ImageEditorAction.SelectTool(EditingTool.None)) },
+                    isFilterApplied = uiState.isFilterApplied
                 )
             }
             EditingTool.None -> {
@@ -797,6 +798,7 @@ private fun FilterControlPanel(
     onRemoveFilter: (String) -> Unit,
     onClearAllFilters: () -> Unit,
     onCancel: () -> Unit,
+    isFilterApplied: Boolean,
     modifier: Modifier = Modifier
 ) {
     FilterPanel(
@@ -809,6 +811,7 @@ private fun FilterControlPanel(
         onRemoveFilter = onRemoveFilter,
         onClearAllFilters = onClearAllFilters,
         onCancel = onCancel,
+        isFilterApplied = isFilterApplied,
         modifier = modifier
     )
 }
@@ -1148,6 +1151,7 @@ private fun FilterPanel(
     onRemoveFilter: (String) -> Unit,
     onClearAllFilters: () -> Unit,
     onCancel: () -> Unit,
+    isFilterApplied: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -1195,12 +1199,15 @@ private fun FilterPanel(
                         modifier = Modifier.height(36.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Check,
+                            imageVector = if (isFilterApplied) Icons.Default.Done else Icons.Default.Check,
                             contentDescription = null,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Apply", style = MaterialTheme.typography.labelMedium)
+                        Text(
+                            text = if (isFilterApplied) "Done" else "Apply", 
+                            style = MaterialTheme.typography.labelMedium
+                        )
                     }
                 }
             }

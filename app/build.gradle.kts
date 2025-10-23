@@ -87,6 +87,9 @@ dependencies {
     // Serialization
     implementation(libs.kotlinx.serialization.json)
     
+    // LeakCanary for memory leak detection (debug builds only)
+    debugImplementation(libs.leakcanary.android)
+    
     // Testing dependencies
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
