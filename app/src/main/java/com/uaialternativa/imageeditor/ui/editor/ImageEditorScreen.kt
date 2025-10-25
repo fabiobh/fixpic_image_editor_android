@@ -476,7 +476,7 @@ private fun EditorToolbar(
             // Crop tool
             ToolButton(
                 icon = Icons.Default.Edit,
-                label = "Crop",
+                label = stringResource(R.string.tool_crop),
                 isSelected = selectedTool == EditingTool.Crop,
                 enabled = hasImage,
                 onClick = { 
@@ -490,7 +490,7 @@ private fun EditorToolbar(
             // Resize tool
             ToolButton(
                 icon = Icons.Default.Build,
-                label = "Resize",
+                label = stringResource(R.string.tool_resize),
                 isSelected = selectedTool == EditingTool.Resize,
                 enabled = hasImage,
                 onClick = { 
@@ -504,7 +504,7 @@ private fun EditorToolbar(
             // Filter tool
             ToolButton(
                 icon = Icons.Default.Settings,
-                label = "Filter",
+                label = stringResource(R.string.tool_filter),
                 isSelected = selectedTool == EditingTool.Filter,
                 enabled = hasImage,
                 onClick = { 
@@ -1442,7 +1442,6 @@ private fun getFilterDisplayName(filterType: com.uaialternativa.imageeditor.doma
         com.uaialternativa.imageeditor.domain.model.FilterType.CONTRAST -> stringResource(R.string.filter_contrast)
         com.uaialternativa.imageeditor.domain.model.FilterType.SATURATION -> stringResource(R.string.filter_saturation)
         com.uaialternativa.imageeditor.domain.model.FilterType.BLUR -> stringResource(R.string.filter_blur)
-        com.uaialternativa.imageeditor.domain.model.FilterType.SHARPEN -> stringResource(R.string.filter_sharpen)
         com.uaialternativa.imageeditor.domain.model.FilterType.SEPIA -> stringResource(R.string.filter_sepia)
         com.uaialternativa.imageeditor.domain.model.FilterType.GRAYSCALE -> stringResource(R.string.filter_grayscale)
     }
@@ -1457,7 +1456,6 @@ private fun getFilterPreviewColor(filterType: com.uaialternativa.imageeditor.dom
         com.uaialternativa.imageeditor.domain.model.FilterType.CONTRAST -> Color(0xFF4A4A4A)
         com.uaialternativa.imageeditor.domain.model.FilterType.SATURATION -> Color(0xFFFF6B6B)
         com.uaialternativa.imageeditor.domain.model.FilterType.BLUR -> Color(0xFF87CEEB)
-        com.uaialternativa.imageeditor.domain.model.FilterType.SHARPEN -> Color(0xFF32CD32)
         com.uaialternativa.imageeditor.domain.model.FilterType.SEPIA -> Color(0xFFA0522D)
         com.uaialternativa.imageeditor.domain.model.FilterType.GRAYSCALE -> Color(0xFF808080)
     }
@@ -1472,7 +1470,6 @@ private fun getFilterIcon(filterType: com.uaialternativa.imageeditor.domain.mode
         com.uaialternativa.imageeditor.domain.model.FilterType.CONTRAST -> Icons.Default.Settings
         com.uaialternativa.imageeditor.domain.model.FilterType.SATURATION -> Icons.Default.Settings
         com.uaialternativa.imageeditor.domain.model.FilterType.BLUR -> Icons.Default.Settings
-        com.uaialternativa.imageeditor.domain.model.FilterType.SHARPEN -> Icons.Default.Settings
         com.uaialternativa.imageeditor.domain.model.FilterType.SEPIA -> Icons.Default.Settings
         com.uaialternativa.imageeditor.domain.model.FilterType.GRAYSCALE -> Icons.Default.Settings
     }

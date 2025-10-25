@@ -8,7 +8,6 @@ enum class FilterType {
     CONTRAST,
     SATURATION,
     BLUR,
-    SHARPEN,
     SEPIA,
     GRAYSCALE
 }

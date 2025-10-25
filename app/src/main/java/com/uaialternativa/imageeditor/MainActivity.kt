@@ -29,38 +29,102 @@ import com.uaialternativa.imageeditor.R
 import com.uaialternativa.imageeditor.domain.model.SavedImage
 import com.uaialternativa.imageeditor.ui.editor.ImageEditorScreen
 import com.uaialternativa.imageeditor.ui.editor.ImageEditorViewModel
+import com.uaialternativa.imageeditor.ui.editor.ImageEditorAction
 import com.uaialternativa.imageeditor.ui.gallery.GalleryScreen
 import com.uaialternativa.imageeditor.ui.picker.ImagePickerManager
 import com.uaialternativa.imageeditor.ui.picker.ImagePickerResult
 import com.uaialternativa.imageeditor.ui.picker.PermissionHandler
+import com.uaialternativa.imageeditor.ui.picker.CameraManager
+import com.uaialternativa.imageeditor.ui.gallery.ImageSourceDialog
+import com.uaialternativa.imageeditor.ui.settings.SettingsScreen
 import com.uaialternativa.imageeditor.ui.theme.ImageEditorTheme
+import android.content.Context
+import android.content.res.Configuration
+import java.util.Locale
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    
+    companion object {
+        private const val PREFS_NAME = "app_preferences"
+        private const val KEY_THEME_MODE = "theme_mode"
+        private const val THEME_SYSTEM = "system"
+        private const val THEME_LIGHT = "light"
+        private const val THEME_DARK = "dark"
+    }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ImageEditorTheme {
-                ImageEditorApp()
+            val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            var themeMode by remember { 
+                mutableStateOf(prefs.getString(KEY_THEME_MODE, THEME_SYSTEM) ?: THEME_SYSTEM) 
+            }
+            
+            val darkTheme = when (themeMode) {
+                THEME_LIGHT -> false
+                THEME_DARK -> true
+                else -> androidx.compose.foundation.isSystemInDarkTheme()
+            }
+            
+            ImageEditorTheme(darkTheme = darkTheme) {
+                ImageEditorApp(
+                    onLanguageChanged = ::changeLanguage,
+                    onThemeChanged = { isDark ->
+                        val newThemeMode = if (isDark) THEME_DARK else THEME_LIGHT
+                        themeMode = newThemeMode
+                        prefs.edit().putString(KEY_THEME_MODE, newThemeMode).apply()
+                    },
+                    currentIsDarkTheme = darkTheme
+                )
             }
         }
+    }
+    
+    private fun changeLanguage(languageCode: String) {
+        // Create locale from language code
+        val locale = when (languageCode) {
+            "pt-BR" -> Locale("pt", "BR")
+            "en" -> Locale("en")
+            else -> Locale("en")
+        }
+        
+        // Apply the new locale
+        Locale.setDefault(locale)
+        val config = Configuration(resources.configuration)
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
+        
+        // Recreate the activity to apply the new locale
+        recreate()
     }
 }
 
 @Composable
-fun ImageEditorApp() {
+fun ImageEditorApp(
+    onLanguageChanged: (String) -> Unit = {},
+    onThemeChanged: (Boolean) -> Unit = {},
+    currentIsDarkTheme: Boolean = false
+) {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Gallery) }
     var isImagePickerLoading by remember { mutableStateOf(false) }
     var imagePickerError by remember { mutableStateOf<String?>(null) }
     var showPermissionDialog by remember { mutableStateOf(false) }
     var showPermissionDeniedDialog by remember { mutableStateOf(false) }
+    var showImageSourceDialog by remember { mutableStateOf(false) }
+    var showCameraPermissionDialog by remember { mutableStateOf(false) }
+    var showCameraPermissionDeniedDialog by remember { mutableStateOf(false) }
+    var currentCameraImageUri by remember { mutableStateOf<Uri?>(null) }
     
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val imagePickerManager = remember { ImagePickerManager(context) }
+    val cameraManager = remember { CameraManager(context) }
     val permissionHandler = remember { PermissionHandler(context) }
     
     // Image picker launcher
@@ -93,8 +157,39 @@ fun ImageEditorApp() {
         }
     }
     
-    // Permission launcher
-    val permissionLauncher = rememberLauncherForActivityResult(
+    // Camera launcher
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        if (success && currentCameraImageUri != null) {
+            isImagePickerLoading = true
+            imagePickerError = null
+            
+            coroutineScope.launch {
+                when (val result = imagePickerManager.validateAndProcessImage(currentCameraImageUri!!)) {
+                    is ImagePickerResult.Success -> {
+                        isImagePickerLoading = false
+                        currentScreen = Screen.Editor(currentCameraImageUri!!, result.fileName)
+                    }
+                    is ImagePickerResult.Error -> {
+                        isImagePickerLoading = false
+                        imagePickerError = result.message
+                    }
+                    is ImagePickerResult.Cancelled -> {
+                        isImagePickerLoading = false
+                    }
+                }
+                currentCameraImageUri = null
+            }
+        } else {
+            // Camera cancelled or failed
+            isImagePickerLoading = false
+            currentCameraImageUri = null
+        }
+    }
+    
+    // Permission launcher for image picker
+    val imagePickerPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
@@ -106,17 +201,61 @@ fun ImageEditorApp() {
         }
     }
     
+    // Function to handle camera launch with permission check
+    val launchCamera = {
+        try {
+            currentCameraImageUri = cameraManager.createImageFileUri()
+            cameraManager.launchCamera(cameraLauncher, currentCameraImageUri!!)
+            // Clean up old images
+            cameraManager.cleanupOldImages()
+        } catch (e: Exception) {
+            imagePickerError = "Failed to launch camera: ${e.message}"
+            currentCameraImageUri = null
+        }
+    }
+    
+    // Permission launcher for camera
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Permission granted, launch camera
+            launchCamera()
+        } else {
+            // Permission denied
+            showCameraPermissionDeniedDialog = true
+        }
+    }
+    
+    // Function to handle camera with permission check
+    val handleCameraAction = {
+        if (permissionHandler.hasCameraPermission()) {
+            launchCamera()
+        } else {
+            if (context is ComponentActivity && permissionHandler.shouldShowCameraPermissionRationale(context)) {
+                showCameraPermissionDialog = true
+            } else {
+                permissionHandler.requestCameraPermission(cameraPermissionLauncher)
+            }
+        }
+    }
+    
     // Function to handle image picker launch with permission check
     val launchImagePicker = {
         if (permissionHandler.hasImagePickerPermission()) {
             imagePickerManager.launchImagePicker(imagePickerLauncher)
         } else {
-            if (context is ComponentActivity && permissionHandler.shouldShowPermissionRationale(context)) {
+            if (context is ComponentActivity && permissionHandler.shouldShowImagePickerPermissionRationale(context)) {
                 showPermissionDialog = true
             } else {
-                permissionHandler.requestImagePickerPermission(permissionLauncher)
+                permissionHandler.requestImagePickerPermission(imagePickerPermissionLauncher)
             }
         }
+    }
+    
+    // Function to show image source dialog
+    val showImageSourceSelection = {
+        showImageSourceDialog = true
     }
 
     when (val screen = currentScreen) {
@@ -125,7 +264,8 @@ fun ImageEditorApp() {
                 onImageSelected = { savedImage ->
                     currentScreen = Screen.EditorFromSaved(savedImage)
                 },
-                onAddImageClicked = launchImagePicker,
+                onAddImageClicked = showImageSourceSelection,
+                onSettingsClicked = { currentScreen = Screen.Settings },
                 isImagePickerLoading = isImagePickerLoading,
                 imagePickerError = imagePickerError,
                 onImagePickerErrorDismissed = { imagePickerError = null },
@@ -133,32 +273,51 @@ fun ImageEditorApp() {
             )
         }
         is Screen.Editor -> {
-            val editorViewModel: ImageEditorViewModel = hiltViewModel()
+            val editorViewModel: ImageEditorViewModel = hiltViewModel(key = "editor_${screen.imageUri}_${screen.fileName}")
             
-            // Load the image when entering editor screen
+            // Reset editor state and load the image when entering editor screen
             androidx.compose.runtime.LaunchedEffect(screen.imageUri) {
+                editorViewModel.handleAction(ImageEditorAction.ResetEditor)
                 editorViewModel.loadImage(screen.imageUri, screen.fileName)
             }
             
             ImageEditorScreen(
-                onNavigateBack = { currentScreen = Screen.Gallery },
+                onNavigateBack = { 
+                    // Clear the editor state when navigating back
+                    editorViewModel.handleAction(ImageEditorAction.ResetEditor)
+                    currentScreen = Screen.Gallery 
+                },
                 modifier = Modifier.fillMaxSize(),
                 viewModel = editorViewModel
             )
         }
         is Screen.EditorFromSaved -> {
-            val editorViewModel: ImageEditorViewModel = hiltViewModel()
+            val editorViewModel: ImageEditorViewModel = hiltViewModel(key = "editor_saved_${screen.savedImage.id}")
             
-            // Load the saved image when entering editor screen
+            // Reset editor state and load the saved image when entering editor screen
             androidx.compose.runtime.LaunchedEffect(screen.savedImage.id) {
+                editorViewModel.handleAction(ImageEditorAction.ResetEditor)
                 val imageUri = Uri.fromFile(java.io.File(screen.savedImage.filePath))
                 editorViewModel.loadImage(imageUri, screen.savedImage.originalFileName ?: screen.savedImage.fileName)
             }
             
             ImageEditorScreen(
-                onNavigateBack = { currentScreen = Screen.Gallery },
+                onNavigateBack = { 
+                    // Clear the editor state when navigating back
+                    editorViewModel.handleAction(ImageEditorAction.ResetEditor)
+                    currentScreen = Screen.Gallery 
+                },
                 modifier = Modifier.fillMaxSize(),
                 viewModel = editorViewModel
+            )
+        }
+        is Screen.Settings -> {
+            SettingsScreen(
+                onNavigateBack = { currentScreen = Screen.Gallery },
+                onLanguageSelected = onLanguageChanged,
+                onThemeSelected = onThemeChanged,
+                currentIsDarkTheme = currentIsDarkTheme,
+                modifier = Modifier.fillMaxSize()
             )
         }
     }
@@ -168,7 +327,7 @@ fun ImageEditorApp() {
         PermissionRationaleDialog(
             onGrantPermission = {
                 showPermissionDialog = false
-                permissionHandler.requestImagePickerPermission(permissionLauncher)
+                permissionHandler.requestImagePickerPermission(imagePickerPermissionLauncher)
             },
             onDismiss = {
                 showPermissionDialog = false
@@ -181,6 +340,39 @@ fun ImageEditorApp() {
         PermissionDeniedDialog(
             onDismiss = {
                 showPermissionDeniedDialog = false
+            }
+        )
+    }
+    
+    // Image source selection dialog
+    if (showImageSourceDialog) {
+        ImageSourceDialog(
+            onDismiss = {
+                showImageSourceDialog = false
+            },
+            onTakePhoto = handleCameraAction,
+            onChooseFromGallery = launchImagePicker
+        )
+    }
+    
+    // Camera permission rationale dialog
+    if (showCameraPermissionDialog) {
+        CameraPermissionRationaleDialog(
+            onGrantPermission = {
+                showCameraPermissionDialog = false
+                permissionHandler.requestCameraPermission(cameraPermissionLauncher)
+            },
+            onDismiss = {
+                showCameraPermissionDialog = false
+            }
+        )
+    }
+    
+    // Camera permission denied dialog
+    if (showCameraPermissionDeniedDialog) {
+        CameraPermissionDeniedDialog(
+            onDismiss = {
+                showCameraPermissionDeniedDialog = false
             }
         )
     }
@@ -251,10 +443,75 @@ private fun PermissionDeniedDialog(
 }
 
 /**
+ * Dialog shown to explain why camera permission is needed
+ */
+@Composable
+private fun CameraPermissionRationaleDialog(
+    onGrantPermission: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(R.string.camera_permission_required_title),
+                style = MaterialTheme.typography.headlineSmall
+            )
+        },
+        text = {
+            Text(
+                text = stringResource(R.string.camera_permission_required_message),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        confirmButton = {
+            Button(onClick = onGrantPermission) {
+                Text(stringResource(R.string.grant_permission))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
+}
+
+/**
+ * Dialog shown when camera permission is denied
+ */
+@Composable
+private fun CameraPermissionDeniedDialog(
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(R.string.camera_permission_denied_title),
+                style = MaterialTheme.typography.headlineSmall
+            )
+        },
+        text = {
+            Text(
+                text = stringResource(R.string.camera_permission_denied_message),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                Text(stringResource(R.string.ok))
+            }
+        }
+    )
+}
+
+/**
  * Sealed class representing different screens in the app
  */
 sealed class Screen {
     object Gallery : Screen()
+    object Settings : Screen()
     data class Editor(val imageUri: Uri, val fileName: String?) : Screen()
     data class EditorFromSaved(val savedImage: SavedImage) : Screen()
 }

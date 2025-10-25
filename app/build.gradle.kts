@@ -14,7 +14,7 @@ android {
     defaultConfig {
         applicationId = "com.uaialternativa.imageeditor"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 33
         versionCode = 1
         versionName = "1.0"
 

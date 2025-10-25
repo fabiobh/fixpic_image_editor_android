@@ -18,9 +18,11 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -38,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -61,10 +64,21 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.uaialternativa.imageeditor.R
 import com.uaialternativa.imageeditor.domain.model.SavedImage
+
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 
 /**
  * Gallery screen displaying saved edited images in a grid layout
@@ -74,6 +88,7 @@ import java.util.Locale
 fun GalleryScreen(
     onImageSelected: (SavedImage) -> Unit,
     onAddImageClicked: () -> Unit,
+    onSettingsClicked: () -> Unit,
     modifier: Modifier = Modifier,
     isImagePickerLoading: Boolean = false,
     imagePickerError: String? = null,
@@ -83,6 +98,9 @@ fun GalleryScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    
+    // Cache context-dependent values to avoid repeated access
+    val addImageDescription = stringResource(R.string.add_image_description)
 
     // Show error messages in snackbar
     LaunchedEffect(uiState.error) {
@@ -99,6 +117,13 @@ fun GalleryScreen(
             onImagePickerErrorDismissed()
         }
     }
+    
+    // Ensure proper cleanup of settings callback
+    DisposableEffect(onSettingsClicked) {
+        onDispose {
+            // Cleanup is handled automatically by Compose
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -108,6 +133,11 @@ fun GalleryScreen(
                     Text(
                         text = stringResource(R.string.gallery_title),
                         style = MaterialTheme.typography.headlineMedium
+                    )
+                },
+                actions = {
+                    com.uaialternativa.imageeditor.ui.common.SettingsMenu(
+                        onSettingsClicked = onSettingsClicked
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -120,7 +150,7 @@ fun GalleryScreen(
             FloatingActionButton(
                 onClick = onAddImageClicked,
                 modifier = Modifier.semantics {
-                    contentDescription = context.getString(R.string.add_image_description)
+                    contentDescription = addImageDescription
                 }
             ) {
                 if (isImagePickerLoading) {
@@ -132,7 +162,7 @@ fun GalleryScreen(
                 } else {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.add_image_description)
+                        contentDescription = addImageDescription
                     )
                 }
             }
@@ -454,3 +484,4 @@ private fun shareImage(context: android.content.Context, image: SavedImage) {
         e.printStackTrace()
     }
 }
+

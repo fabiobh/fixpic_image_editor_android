@@ -8,44 +8,77 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.core.content.ContextCompat
 
 /**
- * Handler for managing image picker permissions
+ * Handler for managing image picker and camera permissions
  */
 class PermissionHandler(private val context: Context) {
     
     companion object {
         /**
-         * Get the required permission based on Android version
+         * Get the required permission for image picker based on Android version
          */
-        fun getRequiredPermission(): String {
+        fun getRequiredImagePickerPermission(): String {
             return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 Manifest.permission.READ_MEDIA_IMAGES
             } else {
                 Manifest.permission.READ_EXTERNAL_STORAGE
             }
         }
+        
+        /**
+         * Get the required permission for camera
+         */
+        const val CAMERA_PERMISSION = Manifest.permission.CAMERA
     }
     
     /**
-     * Check if the required permission is granted
+     * Check if the required image picker permission is granted
      */
     fun hasImagePickerPermission(): Boolean {
-        val permission = getRequiredPermission()
+        val permission = getRequiredImagePickerPermission()
         return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
     }
     
     /**
-     * Request the required permission
+     * Check if camera permission is granted
+     */
+    fun hasCameraPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(context, CAMERA_PERMISSION) == PackageManager.PERMISSION_GRANTED
+    }
+    
+    /**
+     * Request the required image picker permission
      */
     fun requestImagePickerPermission(launcher: ManagedActivityResultLauncher<String, Boolean>) {
-        val permission = getRequiredPermission()
+        val permission = getRequiredImagePickerPermission()
         launcher.launch(permission)
     }
     
     /**
-     * Check if we should show rationale for the permission
+     * Request camera permission
+     */
+    fun requestCameraPermission(launcher: ManagedActivityResultLauncher<String, Boolean>) {
+        launcher.launch(CAMERA_PERMISSION)
+    }
+    
+    /**
+     * Check if we should show rationale for image picker permission
+     */
+    fun shouldShowImagePickerPermissionRationale(activity: androidx.activity.ComponentActivity): Boolean {
+        val permission = getRequiredImagePickerPermission()
+        return activity.shouldShowRequestPermissionRationale(permission)
+    }
+    
+    /**
+     * Check if we should show rationale for camera permission
+     */
+    fun shouldShowCameraPermissionRationale(activity: androidx.activity.ComponentActivity): Boolean {
+        return activity.shouldShowRequestPermissionRationale(CAMERA_PERMISSION)
+    }
+    
+    /**
+     * Check if we should show rationale for the permission (legacy method for backward compatibility)
      */
     fun shouldShowPermissionRationale(activity: androidx.activity.ComponentActivity): Boolean {
-        val permission = getRequiredPermission()
-        return activity.shouldShowRequestPermissionRationale(permission)
+        return shouldShowImagePickerPermissionRationale(activity)
     }
 }

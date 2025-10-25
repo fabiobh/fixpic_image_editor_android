@@ -22,7 +22,6 @@ class ImageProcessingRepositoryImpl @Inject constructor() : ImageProcessingRepos
         FilterType.CONTRAST to ContrastFilter(),
         FilterType.SATURATION to SaturationFilter(),
         FilterType.BLUR to BlurFilter(),
-        FilterType.SHARPEN to SharpenFilter(),
         FilterType.SEPIA to SepiaFilter(),
         FilterType.GRAYSCALE to GrayscaleFilter()
     )

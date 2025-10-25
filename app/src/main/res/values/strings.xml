@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ImageEditor</string>
+    <string name="app_name">FixPic</string>
     
     <!-- Gallery Screen -->
     <string name="gallery_title">Gallery</string>
@@ -7,6 +7,16 @@
     <string name="loading_images">Loading images…</string>
     <string name="empty_gallery_title">No images yet</string>
     <string name="empty_gallery_message">Start editing your first image by tapping the + button</string>
+    
+    <!-- Add Image Options -->
+    <string name="choose_image_source">Choose image source</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="choose_from_gallery">Choose from Gallery</string>
+    <string name="camera_permission_required_title">Camera Permission Required</string>
+    <string name="camera_permission_required_message">This app needs camera permission to take photos. Please grant camera permission to continue.</string>
+    <string name="camera_permission_denied_title">Camera Permission Denied</string>
+    <string name="camera_permission_denied_message">Camera permission is required to take photos. You can enable it in the app settings.</string>
+    
     <string name="share">Share</string>
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
@@ -20,6 +30,9 @@
     <string name="crop_tool">Crop tool</string>
     <string name="resize_tool">Resize tool</string>
     <string name="filter_tool">Filter tool</string>
+    <string name="tool_crop">Crop</string>
+    <string name="tool_resize">Resize</string>
+    <string name="tool_filter">Filter</string>
     <string name="save_image">Save image</string>
     <string name="loading_image">Loading image</string>
     <string name="processing_image">Processing image</string>
@@ -76,7 +89,6 @@
     <string name="filter_contrast">Contrast</string>
     <string name="filter_saturation">Saturation</string>
     <string name="filter_blur">Blur</string>
-    <string name="filter_sharpen">Sharpen</string>
     <string name="filter_sepia">Sepia</string>
     <string name="filter_grayscale">Grayscale</string>
     
@@ -97,4 +109,49 @@
     <string name="permission_denied_message">Without photo access permission, you cannot select images to edit. You can grant this permission in the app settings.</string>
     <string name="grant_permission">Grant Permission</string>
     <string name="ok">OK</string>
+    
+    <!-- Error Messages -->
+    <string name="error_insufficient_memory">Insufficient memory to process the image</string>
+    <string name="error_storage_permission_denied">Storage permission is required to save images</string>
+    <string name="error_unsupported_image_format">The selected image format is not supported</string>
+    <string name="error_processing_failed">Failed to process image: %1$s</string>
+    
+    <!-- Image Picker Error Messages -->
+    <string name="error_cannot_access_image">Cannot access selected image</string>
+    <string name="error_image_too_large_detailed">Image file is too large (%1$s). Maximum size is %2$s</string>
+    <string name="error_unsupported_format_detailed">Unsupported image format: %1$s. Supported formats: JPEG, PNG, WebP, BMP, GIF</string>
+    <string name="error_unsupported_extension">Unsupported file extension: .%1$s. Supported extensions: %2$s</string>
+    <string name="error_invalid_image_dimensions">Invalid image: Cannot determine image dimensions</string>
+    <string name="error_image_dimensions_too_large">Image dimensions too large (%1$dx%2$d). Maximum dimensions: %3$dx%4$d</string>
+    <string name="error_not_valid_image">Selected file is not a valid image</string>
+    <string name="error_permission_denied_access">Permission denied: Cannot access selected image</string>
+    <string name="error_failed_to_process">Failed to process image: %1$s</string>
+    
+    <!-- File Size Units -->
+    <string name="file_size_bytes">%1$d B</string>
+    <string name="file_size_kb">%1$d KB</string>
+    <string name="file_size_mb">%1$d MB</string>
+    <string name="file_size_gb">%1$d GB</string>
+    
+    <!-- Language Selector -->
+    <string name="language_selector">Language selector</string>
+    <string name="select_language">Select Language</string>
+    <string name="language_english">English</string>
+    <string name="language_portuguese">Português (Brasil)</string>
+    
+    <!-- Settings Menu -->
+    <string name="settings_menu">Settings menu</string>
+    <string name="select_theme">Select Theme</string>
+    <string name="light_theme">Light Theme</string>
+    <string name="dark_theme">Dark Theme</string>
+    
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="language_settings">Language</string>
+    <string name="theme_settings">Theme</string>
+    <string name="app_information">App Information</string>
+    <string name="app_name_label">App Name</string>
+    <string name="version_label">Version</string>
+    <string name="build_number_label">Build Number</string>
+    <string name="app_description">A powerful and intuitive image editor for Android. Edit, crop, resize, and apply filters to your photos with ease.</string>
 </resources>
