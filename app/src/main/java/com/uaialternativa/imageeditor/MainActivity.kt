@@ -52,6 +52,7 @@ class MainActivity : ComponentActivity() {
     companion object {
         private const val PREFS_NAME = "app_preferences"
         private const val KEY_THEME_MODE = "theme_mode"
+        private const val KEY_FIRST_LAUNCH = "first_launch"
         private const val THEME_SYSTEM = "system"
         private const val THEME_LIGHT = "light"
         private const val THEME_DARK = "dark"
@@ -62,6 +63,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            
+            // Check if this is the first launch
+            val isFirstLaunch = prefs.getBoolean(KEY_FIRST_LAUNCH, true)
+            if (isFirstLaunch) {
+                // On first launch, set system theme as default and mark as not first launch
+                prefs.edit()
+                    .putString(KEY_THEME_MODE, THEME_SYSTEM)
+                    .putBoolean(KEY_FIRST_LAUNCH, false)
+                    .apply()
+            }
+            
             var themeMode by remember { 
                 mutableStateOf(prefs.getString(KEY_THEME_MODE, THEME_SYSTEM) ?: THEME_SYSTEM) 
             }
@@ -69,20 +81,30 @@ class MainActivity : ComponentActivity() {
             val darkTheme = when (themeMode) {
                 THEME_LIGHT -> false
                 THEME_DARK -> true
-                else -> androidx.compose.foundation.isSystemInDarkTheme()
+                else -> isSystemInDarkMode()
             }
             
             ImageEditorTheme(darkTheme = darkTheme) {
                 ImageEditorApp(
                     onLanguageChanged = ::changeLanguage,
-                    onThemeChanged = { isDark ->
-                        val newThemeMode = if (isDark) THEME_DARK else THEME_LIGHT
+                    onThemeChanged = { newThemeMode ->
                         themeMode = newThemeMode
                         prefs.edit().putString(KEY_THEME_MODE, newThemeMode).apply()
                     },
+                    currentThemeMode = themeMode,
                     currentIsDarkTheme = darkTheme
                 )
             }
+        }
+    }
+    
+    private fun isSystemInDarkMode(): Boolean {
+        return try {
+            val uiMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+            uiMode == Configuration.UI_MODE_NIGHT_YES
+        } catch (e: Exception) {
+            // Fallback to Compose's detection if there's any issue
+            false
         }
     }
     
@@ -108,7 +130,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun ImageEditorApp(
     onLanguageChanged: (String) -> Unit = {},
-    onThemeChanged: (Boolean) -> Unit = {},
+    onThemeChanged: (String) -> Unit = {},
+    currentThemeMode: String = "system",
     currentIsDarkTheme: Boolean = false
 ) {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Gallery) }
@@ -316,6 +339,7 @@ fun ImageEditorApp(
                 onNavigateBack = { currentScreen = Screen.Gallery },
                 onLanguageSelected = onLanguageChanged,
                 onThemeSelected = onThemeChanged,
+                currentThemeMode = currentThemeMode,
                 currentIsDarkTheme = currentIsDarkTheme,
                 modifier = Modifier.fillMaxSize()
             )

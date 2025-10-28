@@ -51,7 +51,8 @@ import com.uaialternativa.imageeditor.R
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onLanguageSelected: (String) -> Unit,
-    onThemeSelected: (Boolean) -> Unit,
+    onThemeSelected: (String) -> Unit,
+    currentThemeMode: String,
     currentIsDarkTheme: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -114,6 +115,7 @@ fun SettingsScreen(
                 icon = Icons.Default.Edit
             ) {
                 ThemeSelector(
+                    currentThemeMode = currentThemeMode,
                     currentIsDarkTheme = currentIsDarkTheme,
                     onThemeSelected = onThemeSelected
                 )
@@ -252,26 +254,59 @@ private fun LanguageSelector(
  */
 @Composable
 private fun ThemeSelector(
+    currentThemeMode: String,
     currentIsDarkTheme: Boolean,
-    onThemeSelected: (Boolean) -> Unit
+    onThemeSelected: (String) -> Unit
 ) {
     Column(
         modifier = Modifier.selectableGroup()
     ) {
-        // Light theme option
+        // System theme option
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .selectable(
-                    selected = !currentIsDarkTheme,
-                    onClick = { onThemeSelected(false) },
+                    selected = currentThemeMode == "system",
+                    onClick = { onThemeSelected("system") },
                     role = Role.RadioButton
                 )
                 .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             RadioButton(
-                selected = !currentIsDarkTheme,
+                selected = currentThemeMode == "system",
+                onClick = null
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = "🔄 ${stringResource(R.string.system_theme)}",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            if (currentThemeMode == "system") {
+                Spacer(modifier = Modifier.weight(1f))
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+        
+        // Light theme option
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .selectable(
+                    selected = currentThemeMode == "light",
+                    onClick = { onThemeSelected("light") },
+                    role = Role.RadioButton
+                )
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RadioButton(
+                selected = currentThemeMode == "light",
                 onClick = null
             )
             Spacer(modifier = Modifier.width(12.dp))
@@ -279,7 +314,7 @@ private fun ThemeSelector(
                 text = "☀️ ${stringResource(R.string.light_theme)}",
                 style = MaterialTheme.typography.bodyLarge
             )
-            if (!currentIsDarkTheme) {
+            if (currentThemeMode == "light") {
                 Spacer(modifier = Modifier.weight(1f))
                 Icon(
                     imageVector = Icons.Default.Check,
@@ -295,15 +330,15 @@ private fun ThemeSelector(
             modifier = Modifier
                 .fillMaxWidth()
                 .selectable(
-                    selected = currentIsDarkTheme,
-                    onClick = { onThemeSelected(true) },
+                    selected = currentThemeMode == "dark",
+                    onClick = { onThemeSelected("dark") },
                     role = Role.RadioButton
                 )
                 .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             RadioButton(
-                selected = currentIsDarkTheme,
+                selected = currentThemeMode == "dark",
                 onClick = null
             )
             Spacer(modifier = Modifier.width(12.dp))
@@ -311,7 +346,7 @@ private fun ThemeSelector(
                 text = "🌙 ${stringResource(R.string.dark_theme)}",
                 style = MaterialTheme.typography.bodyLarge
             )
-            if (currentIsDarkTheme) {
+            if (currentThemeMode == "dark") {
                 Spacer(modifier = Modifier.weight(1f))
                 Icon(
                     imageVector = Icons.Default.Check,

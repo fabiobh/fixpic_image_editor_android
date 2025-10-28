@@ -41,13 +41,10 @@ fun ImageEditorTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    // Additional check for system dark mode - some devices like Motorola G9 
-    // may have issues with isSystemInDarkTheme() detection
+    // Use the provided darkTheme parameter directly - it already contains the resolved theme
+    // based on user preference (system/light/dark) from MainActivity
     val context = LocalContext.current
-    val actualDarkTheme = darkTheme || run {
-        val uiMode = context.resources.configuration.uiMode
-        (uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
-    }
+    val actualDarkTheme = darkTheme
     
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
@@ -58,49 +55,59 @@ fun ImageEditorTheme(
         else -> LightColorScheme
     }
 
-    // Force update system UI to match theme - improved for devices like Motorola G9
+    // Force update system UI to match theme - improved for newer Android versions
     if (context is Activity) {
         SideEffect {
             val window = context.window
             
-            // Use modern WindowInsetsController for API 30+ or fallback for older versions
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                val controller = window.insetsController
-                controller?.setSystemBarsAppearance(
-                    if (actualDarkTheme) 0 else android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
-                    android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
-                )
-                controller?.setSystemBarsAppearance(
-                    if (actualDarkTheme) 0 else android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,
-                    android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
-                )
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                @Suppress("DEPRECATION")
-                val decorView = window.decorView
-                @Suppress("DEPRECATION")
-                val flags = decorView.systemUiVisibility
-                @Suppress("DEPRECATION")
-                decorView.systemUiVisibility = if (actualDarkTheme) {
-                    flags and android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv() and 
+            try {
+                // Use modern WindowInsetsController for API 30+ or fallback for older versions
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    val controller = window.insetsController
+                    controller?.setSystemBarsAppearance(
+                        if (actualDarkTheme) 0 else android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+                        android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    )
+                    controller?.setSystemBarsAppearance(
+                        if (actualDarkTheme) 0 else android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,
+                        android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+                    )
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    @Suppress("DEPRECATION")
+                    val decorView = window.decorView
+                    @Suppress("DEPRECATION")
+                    var flags = decorView.systemUiVisibility
+                    
+                    // Handle status bar
+                    flags = if (actualDarkTheme) {
+                        flags and android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+                    } else {
+                        flags or android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                    }
+                    
+                    // Handle navigation bar for API 26+
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
-                    } else flags
-                } else {
-                    flags or android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
-                    } else flags
+                        flags = if (actualDarkTheme) {
+                            flags and android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
+                        } else {
+                            flags or android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+                        }
+                    }
+                    
+                    @Suppress("DEPRECATION")
+                    decorView.systemUiVisibility = flags
                 }
-            }
-            
-            // Set transparent bars for edge-to-edge experience
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                
+                // Set transparent bars for edge-to-edge experience
                 @Suppress("DEPRECATION")
                 window.statusBarColor = android.graphics.Color.TRANSPARENT
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     @Suppress("DEPRECATION")
                     window.navigationBarColor = android.graphics.Color.TRANSPARENT
                 }
+            } catch (e: Exception) {
+                // Ignore any system UI update errors to prevent crashes
+                // Some devices may have custom implementations that cause issues
             }
         }
     }

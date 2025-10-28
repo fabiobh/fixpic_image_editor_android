@@ -144,6 +144,7 @@
     <string name="select_theme">Selecionar Tema</string>
     <string name="light_theme">Tema Claro</string>
     <string name="dark_theme">Tema Escuro</string>
+    <string name="system_theme">Tema do Sistema</string>
     
     <!-- Settings Screen -->
     <string name="settings_title">Configurações</string>

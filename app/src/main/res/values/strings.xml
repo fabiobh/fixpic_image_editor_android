@@ -144,6 +144,7 @@
     <string name="select_theme">Select Theme</string>
     <string name="light_theme">Light Theme</string>
     <string name="dark_theme">Dark Theme</string>
+    <string name="system_theme">System Theme</string>
     
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
