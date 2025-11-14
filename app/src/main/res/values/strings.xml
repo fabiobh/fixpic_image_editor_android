@@ -44,7 +44,6 @@
     <string name="discard_changes">Discard</string>
     <string name="cancel">Cancel</string>
     <string name="apply">Apply</string>
-    <string name="crop_tool_description">Drag the corners to adjust the crop area, then tap Apply to crop the image.</string>
 
     <string name="current_size">Current size: %1$d × %2$d</string>
     <string name="crop_area">Crop area: %1$d × %2$d</string>

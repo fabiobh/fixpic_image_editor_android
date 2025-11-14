@@ -734,12 +734,6 @@ private fun CropControlPanel(
             color = MaterialTheme.colorScheme.onSurface
         )
         
-        Text(
-            text = stringResource(R.string.crop_tool_description),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        
         if (cropBounds != null) {
             Text(
                 text = "Crop area: ${cropBounds.width()} × ${cropBounds.height()}",
