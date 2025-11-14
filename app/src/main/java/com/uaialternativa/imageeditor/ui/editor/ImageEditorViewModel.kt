@@ -115,7 +115,9 @@ class ImageEditorViewModel @Inject constructor(
     }
 
     private fun setCropBounds(bounds: android.graphics.Rect) {
-        _uiState.value = _uiState.value.copy(cropBounds = bounds)
+        _uiState.value = _uiState.value.copy(
+            cropBounds = bounds
+        )
     }
 
     private fun applyCrop() {
@@ -134,7 +136,7 @@ class ImageEditorViewModel @Inject constructor(
                     addToHistory(
                         image = croppedImage,
                         operations = newOperations,
-                        description = "Crop applied"
+                        description = "Crop applied (${bounds.width()}x${bounds.height()})"
                     )
 
                     _uiState.value = _uiState.value.copy(

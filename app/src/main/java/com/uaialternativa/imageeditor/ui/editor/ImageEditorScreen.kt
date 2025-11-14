@@ -324,26 +324,28 @@ private fun ImageDisplayArea(
                     LoadingImageState()
                 }
                 bitmap != null -> {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(bitmap)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = "Image being edited",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Fit
-                    )
-                    
-                    // Crop overlay when crop tool is selected
-                    if (selectedTool == EditingTool.Crop) {
-                        CropOverlay(
-                            imageSize = IntSize(bitmap.width, bitmap.height),
-                            initialCropBounds = cropBounds,
-                            onCropBoundsChanged = onCropBoundsChanged,
-                            modifier = Modifier.fillMaxSize()
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(bitmap)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Image being edited",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Fit
                         )
+                        
+                        // Crop overlay (only show when crop tool is selected)
+                        if (selectedTool == EditingTool.Crop) {
+                            CropOverlay(
+                                imageSize = IntSize(bitmap.width, bitmap.height),
+                                cropBounds = cropBounds,
+                                onCropBoundsChanged = onCropBoundsChanged,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
                     
                     // Processing overlay
@@ -670,7 +672,12 @@ private fun ToolControlPanel(
         when (selectedTool) {
             EditingTool.Crop -> {
                 CropControlPanel(
+                    currentWidth = uiState.editedImage?.width,
+                    currentHeight = uiState.editedImage?.height,
                     cropBounds = uiState.cropBounds,
+                    onCropBoundsChanged = { bounds ->
+                        onAction(ImageEditorAction.SetCropBounds(bounds))
+                    },
                     onApplyCrop = { onAction(ImageEditorAction.ApplyCrop) },
                     onCancel = { onAction(ImageEditorAction.SelectTool(EditingTool.None)) }
                 )
@@ -719,61 +726,23 @@ private fun ToolControlPanel(
  */
 @Composable
 private fun CropControlPanel(
+    currentWidth: Int?,
+    currentHeight: Int?,
     cropBounds: android.graphics.Rect?,
+    onCropBoundsChanged: (android.graphics.Rect) -> Unit,
     onApplyCrop: () -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text(
-            text = "Crop Tool",
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        
-        if (cropBounds != null) {
-            Text(
-                text = "Crop area: ${cropBounds.width()} × ${cropBounds.height()}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            OutlinedButton(
-                onClick = onCancel,
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Cancel")
-            }
-            
-            Button(
-                onClick = onApplyCrop,
-                enabled = cropBounds != null,
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Apply")
-            }
-        }
-    }
+    CropPanel(
+        currentWidth = currentWidth,
+        currentHeight = currentHeight,
+        cropBounds = cropBounds,
+        onCropBoundsChanged = onCropBoundsChanged,
+        onApplyCrop = onApplyCrop,
+        onCancel = onCancel,
+        modifier = modifier
+    )
 }
 
 /**
@@ -1466,5 +1435,83 @@ private fun getFilterIcon(filterType: com.uaialternativa.imageeditor.domain.mode
         com.uaialternativa.imageeditor.domain.model.FilterType.BLUR -> Icons.Default.Settings
         com.uaialternativa.imageeditor.domain.model.FilterType.SEPIA -> Icons.Default.Settings
         com.uaialternativa.imageeditor.domain.model.FilterType.GRAYSCALE -> Icons.Default.Settings
+    }
+}
+
+/**
+ * Crop panel with interactive crop overlay
+ */
+@Composable
+internal fun CropPanel(
+    currentWidth: Int?,
+    currentHeight: Int?,
+    cropBounds: android.graphics.Rect?,
+    onCropBoundsChanged: (android.graphics.Rect) -> Unit,
+    onApplyCrop: () -> Unit,
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    var localCropBounds by remember(currentWidth, currentHeight) {
+        mutableStateOf(
+            cropBounds ?: if (currentWidth != null && currentHeight != null) {
+                android.graphics.Rect(
+                    currentWidth / 4,
+                    currentHeight / 4,
+                    currentWidth * 3 / 4,
+                    currentHeight * 3 / 4
+                )
+            } else null
+        )
+    }
+    
+    // Update parent when local bounds change
+    LaunchedEffect(localCropBounds) {
+        localCropBounds?.let { onCropBoundsChanged(it) }
+    }
+    
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.crop_tool),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        
+        // Action buttons
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            OutlinedButton(
+                onClick = onCancel,
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Cancel")
+            }
+            
+            Button(
+                onClick = onApplyCrop,
+                enabled = localCropBounds != null,
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Apply")
+            }
+        }
     }
 }
