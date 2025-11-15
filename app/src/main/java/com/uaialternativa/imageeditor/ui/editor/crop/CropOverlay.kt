@@ -267,66 +267,65 @@ fun CropOverlay(
             strokeWidth = 1f
         )
         
-        // Draw corner handles
-        val handleSize = 40f
-        val handleThickness = 6f
-        val handleColor = Color.White
+        // Draw corner handles as circles (easier to tap)
+        val circleRadius = 40f  // Doubled from 20f
+        val circleColor = Color.White
+        val circleStrokeWidth = 8f  // Doubled from 4f
+        val centerY = (screenBounds.top + screenBounds.bottom) / 2f
         
-        // Top-left handle
-        drawLine(
-            color = handleColor,
-            start = Offset(screenBounds.left.toFloat(), screenBounds.top.toFloat()),
-            end = Offset(screenBounds.left + handleSize, screenBounds.top.toFloat()),
-            strokeWidth = handleThickness
+        // Top-left circle
+        drawCircle(
+            color = circleColor,
+            radius = circleRadius,
+            center = Offset(screenBounds.left.toFloat(), screenBounds.top.toFloat()),
+            style = Stroke(width = circleStrokeWidth)
         )
-        drawLine(
-            color = handleColor,
-            start = Offset(screenBounds.left.toFloat(), screenBounds.top.toFloat()),
-            end = Offset(screenBounds.left.toFloat(), screenBounds.top + handleSize),
-            strokeWidth = handleThickness
-        )
-        
-        // Top-right handle
-        drawLine(
-            color = handleColor,
-            start = Offset(screenBounds.right.toFloat(), screenBounds.top.toFloat()),
-            end = Offset(screenBounds.right - handleSize, screenBounds.top.toFloat()),
-            strokeWidth = handleThickness
-        )
-        drawLine(
-            color = handleColor,
-            start = Offset(screenBounds.right.toFloat(), screenBounds.top.toFloat()),
-            end = Offset(screenBounds.right.toFloat(), screenBounds.top + handleSize),
-            strokeWidth = handleThickness
+        drawCircle(
+            color = circleColor.copy(alpha = 0.3f),
+            radius = circleRadius,
+            center = Offset(screenBounds.left.toFloat(), screenBounds.top.toFloat())
         )
         
-        // Bottom-left handle
-        drawLine(
-            color = handleColor,
-            start = Offset(screenBounds.left.toFloat(), screenBounds.bottom.toFloat()),
-            end = Offset(screenBounds.left + handleSize, screenBounds.bottom.toFloat()),
-            strokeWidth = handleThickness
+        // Top-right circle
+        drawCircle(
+            color = circleColor,
+            radius = circleRadius,
+            center = Offset(screenBounds.right.toFloat(), screenBounds.top.toFloat()),
+            style = Stroke(width = circleStrokeWidth)
         )
-        drawLine(
-            color = handleColor,
-            start = Offset(screenBounds.left.toFloat(), screenBounds.bottom.toFloat()),
-            end = Offset(screenBounds.left.toFloat(), screenBounds.bottom - handleSize),
-            strokeWidth = handleThickness
+        drawCircle(
+            color = circleColor.copy(alpha = 0.3f),
+            radius = circleRadius,
+            center = Offset(screenBounds.right.toFloat(), screenBounds.top.toFloat())
         )
         
-        // Bottom-right handle
-        drawLine(
-            color = handleColor,
-            start = Offset(screenBounds.right.toFloat(), screenBounds.bottom.toFloat()),
-            end = Offset(screenBounds.right - handleSize, screenBounds.bottom.toFloat()),
-            strokeWidth = handleThickness
+        // Bottom-left circle
+        drawCircle(
+            color = circleColor,
+            radius = circleRadius,
+            center = Offset(screenBounds.left.toFloat(), screenBounds.bottom.toFloat()),
+            style = Stroke(width = circleStrokeWidth)
         )
-        drawLine(
-            color = handleColor,
-            start = Offset(screenBounds.right.toFloat(), screenBounds.bottom.toFloat()),
-            end = Offset(screenBounds.right.toFloat(), screenBounds.bottom - handleSize),
-            strokeWidth = handleThickness
+        drawCircle(
+            color = circleColor.copy(alpha = 0.3f),
+            radius = circleRadius,
+            center = Offset(screenBounds.left.toFloat(), screenBounds.bottom.toFloat())
         )
+        
+        // Bottom-right circle
+        drawCircle(
+            color = circleColor,
+            radius = circleRadius,
+            center = Offset(screenBounds.right.toFloat(), screenBounds.bottom.toFloat()),
+            style = Stroke(width = circleStrokeWidth)
+        )
+        drawCircle(
+            color = circleColor.copy(alpha = 0.3f),
+            radius = circleRadius,
+            center = Offset(screenBounds.right.toFloat(), screenBounds.bottom.toFloat())
+        )
+        
+
     }
 }
 
@@ -343,11 +342,13 @@ private enum class CropHandle {
 
 /**
  * Detect which handle (if any) was touched
+ * Returns null if touched outside the crop area
  */
-private fun detectHandle(touchPoint: Offset, bounds: Rect, scaleFactor: Float): CropHandle {
-    val touchRadius = 60f * scaleFactor
+private fun detectHandle(touchPoint: Offset, bounds: Rect, scaleFactor: Float): CropHandle? {
+    // Much larger touch area to match the larger visual circles
+    val touchRadius = 400f * scaleFactor  // Quadrupled from 100f to match larger circles
     
-    // Check corners first
+    // Check corners first (higher priority)
     if (touchPoint.x in (bounds.left - touchRadius)..(bounds.left + touchRadius) &&
         touchPoint.y in (bounds.top - touchRadius)..(bounds.top + touchRadius)) {
         return CropHandle.TopLeft
@@ -374,6 +375,6 @@ private fun detectHandle(touchPoint: Offset, bounds: Rect, scaleFactor: Float): 
         return CropHandle.Center
     }
     
-    // Default to center if nothing else matches
-    return CropHandle.Center
+    // Return null if touched outside the crop area
+    return null
 }

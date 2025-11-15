@@ -1,0 +1,4 @@
+# Appfile for Google Play configuration
+
+json_key_file("google-play-service-account_v2_15112025.json") # Path to the json secret file
+package_name("com.uaialternativa.imageeditor") # e.g. com.krausefx.app

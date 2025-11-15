@@ -1,0 +1,26 @@
+# Fastfile for managing Google Play metadata
+
+default_platform(:android)
+
+platform :android do
+  desc "Download text metadata only from Google Play Console"
+  lane :download_metadata do
+    sh("bundle exec fastlane supply download_metadata --package_name com.uaialternativa.imageeditor --metadata_path ./metadata --json_key ./google-play-service-account_v2_15112025.json --skip_download_images")
+    UI.success("✅ Text metadata downloaded successfully to fastlane/metadata")
+  end
+
+  desc "Upload text metadata only to Google Play Console"
+  lane :upload_metadata do
+    upload_to_play_store(
+      package_name: "com.uaialternativa.imageeditor",
+      metadata_path: "./fastlane/metadata",
+      json_key: "./fastlane/google-play-service-account_v2_15112025.json",
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: true
+    )
+    UI.success("✅ Text metadata uploaded successfully to Google Play")
+  end
+end
