@@ -1,9 +1,8 @@
 package com.uaialternativa.imageeditor.ui.gallery
 
 import android.content.Intent
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,8 +18,11 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -38,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -61,10 +64,21 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.uaialternativa.imageeditor.R
 import com.uaialternativa.imageeditor.domain.model.SavedImage
+
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 
 /**
  * Gallery screen displaying saved edited images in a grid layout
@@ -74,18 +88,40 @@ import java.util.Locale
 fun GalleryScreen(
     onImageSelected: (SavedImage) -> Unit,
     onAddImageClicked: () -> Unit,
+    onSettingsClicked: () -> Unit,
     modifier: Modifier = Modifier,
+    isImagePickerLoading: Boolean = false,
+    imagePickerError: String? = null,
+    onImagePickerErrorDismissed: () -> Unit = {},
     viewModel: GalleryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    
+    // Cache context-dependent values to avoid repeated access
+    val addImageDescription = stringResource(R.string.add_image_description)
 
     // Show error messages in snackbar
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
             snackbarHostState.showSnackbar(error)
             viewModel.clearError()
+        }
+    }
+    
+    // Show image picker error messages in snackbar
+    LaunchedEffect(imagePickerError) {
+        imagePickerError?.let { error ->
+            snackbarHostState.showSnackbar(error)
+            onImagePickerErrorDismissed()
+        }
+    }
+    
+    // Ensure proper cleanup of settings callback
+    DisposableEffect(onSettingsClicked) {
+        onDispose {
+            // Cleanup is handled automatically by Compose
         }
     }
 
@@ -99,6 +135,11 @@ fun GalleryScreen(
                         style = MaterialTheme.typography.headlineMedium
                     )
                 },
+                actions = {
+                    com.uaialternativa.imageeditor.ui.common.SettingsMenu(
+                        onSettingsClicked = onSettingsClicked
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -109,13 +150,21 @@ fun GalleryScreen(
             FloatingActionButton(
                 onClick = onAddImageClicked,
                 modifier = Modifier.semantics {
-                    contentDescription = context.getString(R.string.add_image_description)
+                    contentDescription = addImageDescription
                 }
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.add_image_description)
-                )
+                if (isImagePickerLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = addImageDescription
+                    )
+                }
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -139,7 +188,7 @@ fun GalleryScreen(
             else -> {
                 ImageGrid(
                     images = uiState.images,
-                    onImageClick = onImageSelected,
+                    onImageEdit = onImageSelected,
                     onImageDelete = { imageId ->
                         viewModel.deleteImage(imageId)
                     },
@@ -233,12 +282,12 @@ private fun EmptyState(
 }
 
 /**
- * Grid of images with support for click and long-press interactions
+ * Grid of images with context menu on click
  */
 @Composable
 private fun ImageGrid(
     images: List<SavedImage>,
-    onImageClick: (SavedImage) -> Unit,
+    onImageEdit: (SavedImage) -> Unit,
     onImageDelete: (String) -> Unit,
     onImageShare: (SavedImage) -> Unit,
     isDeleting: Boolean,
@@ -258,7 +307,7 @@ private fun ImageGrid(
         ) { image ->
             ImageGridItem(
                 image = image,
-                onClick = { onImageClick(image) },
+                onEdit = { onImageEdit(image) },
                 onDelete = { onImageDelete(image.id) },
                 onShare = { onImageShare(image) },
                 isDeleting = isDeleting && deletingImageId == image.id
@@ -268,13 +317,12 @@ private fun ImageGrid(
 }
 
 /**
- * Individual image item in the grid with context menu support
+ * Individual image item in the grid with context menu on click
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ImageGridItem(
     image: SavedImage,
-    onClick: () -> Unit,
+    onEdit: () -> Unit,
     onDelete: () -> Unit,
     onShare: () -> Unit,
     isDeleting: Boolean,
@@ -290,10 +338,7 @@ private fun ImageGridItem(
     Card(
         modifier = modifier
             .aspectRatio(1f)
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = { showContextMenu = true }
-            )
+            .clickable { showContextMenu = true }
             .semantics {
                 contentDescription = "Image ${image.fileName}, created ${dateFormatter.format(Date(image.createdAt))}"
             },
@@ -365,6 +410,20 @@ private fun ImageGridItem(
                 onDismissRequest = { showContextMenu = false }
             ) {
                 DropdownMenuItem(
+                    text = { Text(stringResource(R.string.edit)) },
+                    onClick = {
+                        showContextMenu = false
+                        onEdit()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null
+                        )
+                    }
+                )
+                
+                DropdownMenuItem(
                     text = { Text(stringResource(R.string.share)) },
                     onClick = {
                         showContextMenu = false
@@ -425,3 +484,4 @@ private fun shareImage(context: android.content.Context, image: SavedImage) {
         e.printStackTrace()
     }
 }
+

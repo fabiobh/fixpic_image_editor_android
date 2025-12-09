@@ -3,6 +3,7 @@ package com.uaialternativa.imageeditor.domain.usecase
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -53,7 +54,9 @@ class LoadImageUseCase @Inject constructor(
                     newInputStream.use { newStream ->
                         val bitmap = BitmapFactory.decodeStream(newStream, null, options)
                         if (bitmap != null) {
-                            Result.success(bitmap)
+                            // Apply EXIF orientation correction
+                            val correctedBitmap = applyExifOrientation(bitmap, uri)
+                            Result.success(correctedBitmap)
                         } else {
                             Result.failure(IOException("Failed to decode bitmap from URI: $uri"))
                         }
@@ -61,7 +64,9 @@ class LoadImageUseCase @Inject constructor(
                 } else {
                     val bitmap = BitmapFactory.decodeStream(stream, null, options)
                     if (bitmap != null) {
-                        Result.success(bitmap)
+                        // Apply EXIF orientation correction
+                        val correctedBitmap = applyExifOrientation(bitmap, uri)
+                        Result.success(correctedBitmap)
                     } else {
                         Result.failure(IOException("Failed to decode bitmap from URI: $uri"))
                     }
@@ -139,5 +144,77 @@ class LoadImageUseCase @Inject constructor(
         }
         
         return inSampleSize
+    }
+    
+    /**
+     * Apply EXIF orientation correction to a bitmap
+     */
+    private fun applyExifOrientation(bitmap: Bitmap, uri: Uri): Bitmap {
+        return try {
+            // Use reflection to avoid class loading issues in tests
+            val exifClass = Class.forName("androidx.exifinterface.media.ExifInterface")
+            val inputStream = context.contentResolver.openInputStream(uri)
+            inputStream?.use { stream ->
+                val exif = exifClass.getConstructor(java.io.InputStream::class.java).newInstance(stream)
+                val tagOrientation = exifClass.getField("TAG_ORIENTATION").get(null) as String
+                val orientationUndefined = exifClass.getField("ORIENTATION_UNDEFINED").getInt(null)
+                val orientationNormal = exifClass.getField("ORIENTATION_NORMAL").getInt(null)
+                val orientationFlipHorizontal = exifClass.getField("ORIENTATION_FLIP_HORIZONTAL").getInt(null)
+                val orientationRotate180 = exifClass.getField("ORIENTATION_ROTATE_180").getInt(null)
+                val orientationFlipVertical = exifClass.getField("ORIENTATION_FLIP_VERTICAL").getInt(null)
+                val orientationTranspose = exifClass.getField("ORIENTATION_TRANSPOSE").getInt(null)
+                val orientationRotate90 = exifClass.getField("ORIENTATION_ROTATE_90").getInt(null)
+                val orientationTransverse = exifClass.getField("ORIENTATION_TRANSVERSE").getInt(null)
+                val orientationRotate270 = exifClass.getField("ORIENTATION_ROTATE_270").getInt(null)
+                
+                val getAttributeIntMethod = exifClass.getMethod("getAttributeInt", String::class.java, Int::class.javaPrimitiveType)
+                val orientation = getAttributeIntMethod.invoke(exif, tagOrientation, orientationUndefined) as Int
+                
+                when (orientation) {
+                    orientationNormal -> bitmap
+                    orientationFlipHorizontal -> {
+                        val matrix = Matrix().apply { setScale(-1f, 1f) }
+                        Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                    }
+                    orientationRotate180 -> {
+                        val matrix = Matrix().apply { setRotate(180f) }
+                        Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                    }
+                    orientationFlipVertical -> {
+                        val matrix = Matrix().apply { setScale(1f, -1f) }
+                        Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                    }
+                    orientationTranspose -> {
+                        val matrix = Matrix().apply { 
+                            setRotate(90f)
+                            postScale(-1f, 1f)
+                        }
+                        Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                    }
+                    orientationRotate90 -> {
+                        val matrix = Matrix().apply { setRotate(90f) }
+                        Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                    }
+                    orientationTransverse -> {
+                        val matrix = Matrix().apply { 
+                            setRotate(-90f)
+                            postScale(-1f, 1f)
+                        }
+                        Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                    }
+                    orientationRotate270 -> {
+                        val matrix = Matrix().apply { setRotate(-90f) }
+                        Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                    }
+                    else -> bitmap
+                }
+            } ?: bitmap
+        } catch (e: ClassNotFoundException) {
+            // ExifInterface not available (e.g., in tests), return original bitmap
+            bitmap
+        } catch (e: Exception) {
+            // If EXIF reading fails, return original bitmap
+            bitmap
+        }
     }
 }

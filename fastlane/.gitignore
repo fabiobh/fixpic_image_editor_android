@@ -1,0 +1,15 @@
+# Fastlane specific
+*.ipa
+*.dSYM.zip
+*.mobileprovision
+*.cert
+Preview.html
+report.xml
+test_output
+
+# Google Play API credentials
+*.json
+!metadata/**/*.json
+
+# Metadata (optional - uncomment if you don't want to commit metadata)
+# metadata/

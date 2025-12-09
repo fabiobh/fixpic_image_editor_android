@@ -1,0 +1,157 @@
+<resources>
+    <string name="app_name">FixPic</string>
+    
+    <!-- Gallery Screen -->
+    <string name="gallery_title">Galeria</string>
+    <string name="add_image_description">Adicionar nova imagem para editar</string>
+    <string name="loading_images">Carregando imagens…</string>
+    <string name="empty_gallery_title">Nenhuma imagem ainda</string>
+    <string name="empty_gallery_message">Comece editando sua primeira imagem tocando no botão +</string>
+    
+    <!-- Add Image Options -->
+    <string name="choose_image_source">Escolher origem da imagem</string>
+    <string name="take_photo">Tirar Foto</string>
+    <string name="choose_from_gallery">Escolher da Galeria</string>
+    <string name="camera_permission_required_title">Permissão da Câmera Necessária</string>
+    <string name="camera_permission_required_message">Este aplicativo precisa da permissão da câmera para tirar fotos. Por favor, conceda a permissão da câmera para continuar.</string>
+    <string name="camera_permission_denied_title">Permissão da Câmera Negada</string>
+    <string name="camera_permission_denied_message">A permissão da câmera é necessária para tirar fotos. Você pode habilitá-la nas configurações do aplicativo.</string>
+    
+    <string name="share">Compartilhar</string>
+    <string name="delete">Excluir</string>
+    <string name="edit">Editar</string>
+    <string name="share_image">Compartilhar imagem</string>
+    
+    <!-- Image Editor Screen -->
+    <string name="image_editor_title">Editor de Imagens</string>
+    <string name="navigate_back">Voltar</string>
+    <string name="undo_action">Desfazer última ação</string>
+    <string name="redo_action">Refazer última ação desfeita</string>
+    <string name="crop_tool">Ferramenta de corte</string>
+    <string name="resize_tool">Ferramenta de redimensionamento</string>
+    <string name="filter_tool">Ferramenta de filtros</string>
+    <string name="tool_crop">Cortar</string>
+    <string name="tool_resize">Redimensionar</string>
+    <string name="tool_filter">Filtros</string>
+    <string name="save_image">Salvar imagem</string>
+    <string name="loading_image">Carregando imagem</string>
+    <string name="processing_image">Processando imagem</string>
+    <string name="no_image_loaded">Nenhuma imagem carregada</string>
+    <string name="select_image_to_edit">Selecione uma imagem da galeria para começar a editar</string>
+    <string name="unsaved_changes_title">Alterações Não Salvas</string>
+    <string name="unsaved_changes_message">Você tem alterações não salvas. O que gostaria de fazer?</string>
+    <string name="save_and_exit">Salvar e Sair</string>
+    <string name="discard_changes">Descartar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="apply">Aplicar</string>
+
+    <string name="current_size">Tamanho atual: %1$d × %2$d</string>
+    <string name="crop_area">Área de corte: %1$d × %2$d</string>
+    <string name="selected_filter">Filtro selecionado: %1$s</string>
+
+    <string name="saving_image">Salvando...</string>
+    <string name="image_saved_successfully">Imagem salva com sucesso!</string>
+    
+    <!-- Crop Tool -->
+    <string name="crop_handle">Alça de corte</string>
+    <string name="crop_center_handle">Alça central de corte</string>
+    <string name="drag_to_adjust_crop">Arraste para ajustar a área de corte</string>
+    
+    <!-- Resize Tool -->
+    <string name="resize_tool_title">Ferramenta de Redimensionamento</string>
+    <string name="resize_tool_description">Digite as novas dimensões para a imagem.</string>
+    <string name="lock_aspect_ratio">Travar proporção</string>
+    <string name="width_label">Largura</string>
+    <string name="height_label">Altura</string>
+    <string name="pixels_unit">px</string>
+    <string name="preview_size">Visualização: %1$d × %2$d</string>
+    <string name="scale_percentage">Escala: %1$d%%</string>
+    <string name="width_required">Largura é obrigatória</string>
+    <string name="height_required">Altura é obrigatória</string>
+    <string name="invalid_number">Número inválido</string>
+    <string name="width_must_be_positive">Largura deve ser positiva</string>
+    <string name="height_must_be_positive">Altura deve ser positiva</string>
+    <string name="width_too_large">Largura muito grande (máx 4096)</string>
+    <string name="height_too_large">Altura muito grande (máx 4096)</string>
+    
+    <!-- Filter Tool -->
+    <string name="filter_tool_title">Ferramenta de Filtros</string>
+    <string name="filter_tool_description">Selecione um filtro para aplicar à sua imagem e ajuste sua intensidade.</string>
+    <string name="available_filters">Filtros Disponíveis</string>
+    <string name="applied_filters">Filtros Aplicados (%1$d)</string>
+    <string name="clear_all_filters">Limpar Todos</string>
+    <string name="filter_intensity">Intensidade do Filtro</string>
+    <string name="remove_filter">Remover filtro</string>
+    
+    <!-- Filter Names -->
+    <string name="filter_brightness">Brilho</string>
+    <string name="filter_contrast">Contraste</string>
+    <string name="filter_saturation">Saturação</string>
+    <string name="filter_blur">Desfoque</string>
+    <string name="filter_sepia">Sépia</string>
+    <string name="filter_grayscale">Escala de Cinza</string>
+    
+    <!-- Image Picker -->
+    <string name="selecting_image">Selecionando imagem…</string>
+    <string name="processing_selected_image">Processando imagem selecionada…</string>
+    <string name="image_picker_error">Erro na Seleção de Imagem</string>
+    <string name="image_too_large">Arquivo de imagem muito grande</string>
+    <string name="unsupported_format">Formato de imagem não suportado</string>
+    <string name="invalid_image">Arquivo de imagem inválido</string>
+    <string name="permission_denied">Permissão negada</string>
+    <string name="image_picker_cancelled">Seleção de imagem cancelada</string>
+    
+    <!-- Permissions -->
+    <string name="permission_required_title">Permissão Necessária</string>
+    <string name="permission_required_message">Este aplicativo precisa acessar suas fotos para selecionar imagens para edição. Por favor, conceda a permissão para continuar.</string>
+    <string name="permission_denied_title">Permissão Negada</string>
+    <string name="permission_denied_message">Sem a permissão de acesso às fotos, você não pode selecionar imagens para editar. Você pode conceder esta permissão nas configurações do aplicativo.</string>
+    <string name="grant_permission">Conceder Permissão</string>
+    <string name="ok">OK</string>
+    
+    <!-- Error Messages -->
+    <string name="error_insufficient_memory">Memória insuficiente para processar a imagem</string>
+    <string name="error_storage_permission_denied">Permissão de armazenamento é necessária para salvar imagens</string>
+    <string name="error_unsupported_image_format">O formato de imagem selecionado não é suportado</string>
+    <string name="error_processing_failed">Falha ao processar imagem: %1$s</string>
+    
+    <!-- Image Picker Error Messages -->
+    <string name="error_cannot_access_image">Não é possível acessar a imagem selecionada</string>
+    <string name="error_image_too_large_detailed">Arquivo de imagem muito grande (%1$s). Tamanho máximo é %2$s</string>
+    <string name="error_unsupported_format_detailed">Formato de imagem não suportado: %1$s. Formatos suportados: JPEG, PNG, WebP, BMP, GIF</string>
+    <string name="error_unsupported_extension">Extensão de arquivo não suportada: .%1$s. Extensões suportadas: %2$s</string>
+    <string name="error_invalid_image_dimensions">Imagem inválida: Não é possível determinar as dimensões da imagem</string>
+    <string name="error_image_dimensions_too_large">Dimensões da imagem muito grandes (%1$dx%2$d). Dimensões máximas: %3$dx%4$d</string>
+    <string name="error_not_valid_image">O arquivo selecionado não é uma imagem válida</string>
+    <string name="error_permission_denied_access">Permissão negada: Não é possível acessar a imagem selecionada</string>
+    <string name="error_failed_to_process">Falha ao processar imagem: %1$s</string>
+    
+    <!-- File Size Units -->
+    <string name="file_size_bytes">%1$d B</string>
+    <string name="file_size_kb">%1$d KB</string>
+    <string name="file_size_mb">%1$d MB</string>
+    <string name="file_size_gb">%1$d GB</string>
+    
+    <!-- Language Selector -->
+    <string name="language_selector">Seletor de idioma</string>
+    <string name="select_language">Selecionar Idioma</string>
+    <string name="language_english">English</string>
+    <string name="language_portuguese">Português (Brasil)</string>
+    
+    <!-- Settings Menu -->
+    <string name="settings_menu">Menu de configurações</string>
+    <string name="select_theme">Selecionar Tema</string>
+    <string name="light_theme">Tema Claro</string>
+    <string name="dark_theme">Tema Escuro</string>
+    <string name="system_theme">Tema do Sistema</string>
+    
+    <!-- Settings Screen -->
+    <string name="settings_title">Configurações</string>
+    <string name="language_settings">Idioma</string>
+    <string name="theme_settings">Tema</string>
+    <string name="app_information">Informações do App</string>
+    <string name="app_name_label">Nome do App</string>
+    <string name="version_label">Versão</string>
+    <string name="build_number_label">Número da Build</string>
+    <string name="app_description">Um editor de imagens poderoso e intuitivo para Android. Edite, corte, redimensione e aplique filtros às suas fotos com facilidade.</string>
+</resources>

@@ -14,7 +14,6 @@ class AllFiltersTest {
         val contrastFilter = ContrastFilter()
         val saturationFilter = SaturationFilter()
         val blurFilter = BlurFilter()
-        val sharpenFilter = SharpenFilter()
         val sepiaFilter = SepiaFilter()
         val grayscaleFilter = GrayscaleFilter()
         
@@ -23,7 +22,6 @@ class AllFiltersTest {
         assertNotNull(contrastFilter)
         assertNotNull(saturationFilter)
         assertNotNull(blurFilter)
-        assertNotNull(sharpenFilter)
         assertNotNull(sepiaFilter)
         assertNotNull(grayscaleFilter)
     }
@@ -36,7 +34,6 @@ class AllFiltersTest {
             ContrastFilter(),
             SaturationFilter(),
             BlurFilter(),
-            SharpenFilter(),
             SepiaFilter(),
             GrayscaleFilter()
         )
@@ -54,14 +51,13 @@ class AllFiltersTest {
         val filterTypes = FilterType.values()
         
         // When & Then
-        assertEquals("Should have 7 filter types", 7, filterTypes.size)
+        assertEquals("Should have 6 filter types", 6, filterTypes.size)
         
         // Verify all expected filter types exist
         assertTrue(filterTypes.contains(FilterType.BRIGHTNESS))
         assertTrue(filterTypes.contains(FilterType.CONTRAST))
         assertTrue(filterTypes.contains(FilterType.SATURATION))
         assertTrue(filterTypes.contains(FilterType.BLUR))
-        assertTrue(filterTypes.contains(FilterType.SHARPEN))
         assertTrue(filterTypes.contains(FilterType.SEPIA))
         assertTrue(filterTypes.contains(FilterType.GRAYSCALE))
     }

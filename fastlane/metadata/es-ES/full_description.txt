@@ -1,0 +1,33 @@
+📱 FixPic – Editor de Imágenes Potente e Intuitivo para Android
+FixPic es el editor de fotos definitivo diseñado para que la edición de imágenes sea rápida, simple y eficiente. Ya seas un usuario casual ajustando tus selfies o un profesional buscando herramientas precisas para preparar imágenes para proyectos, FixPic te da todo lo que necesitas, todo en una aplicación elegante y ligera.
+✂️ Recorta, Redimensiona y Mejora sin Esfuerzo
+Con FixPic, puedes recortar, redimensionar y ajustar cualquier foto fácilmente con solo unos pocos toques. Elige el área exacta que deseas conservar usando la Herramienta de Recorte, o introduce dimensiones precisas con la Herramienta de Redimensionar. FixPic mantiene automáticamente la relación de aspecto para proporciones perfectas en todo momento.
+¿Necesitas hacer una imagen más pequeña para compartirla o subirla en línea? FixPic te ayuda a reducir el tamaño de la foto sin perder calidad, ideal para optimizar imágenes para redes sociales, mensajería o almacenamiento.
+🎨 Aplica Filtros y Ajustes
+Da vida a tus imágenes con opciones de edición intuitivas. Usa la Herramienta de Filtros para ajustar el brillo, contraste, saturación, desenfoque o aplicar un suave efecto sepia para un toque vintage. FixPic ofrece controles esenciales que te permiten afinar tus fotos sin complicar tu flujo de trabajo.
+Desde correcciones sutiles hasta efectos creativos, cada edición que haces es instantánea y reversible, dándote total libertad creativa.
+📸 Elige o Captura al Instante
+Comienza a editar en segundos tomando una foto directamente desde la cámara o seleccionando una imagen existente de tu galería. El diseño limpio y responsivo de FixPic asegura una experiencia de edición fluida en todos los dispositivos Android, ya sea en un teléfono o una tableta.
+⚙️ Interfaz Limpia, Moderna y Personalizable
+FixPic ofrece un tema claro y oscuro, para que puedas elegir el aspecto que se adapte a tu estilo y entorno. Cambia de idioma fácilmente (disponible en inglés y portugués de Brasil), haciéndolo accesible para usuarios de todo el mundo.
+Cada función está cuidadosamente ubicada para un fácil acceso, manteniendo el enfoque en lo que realmente importa: tus fotos.
+💾 Guarda y Comparte con Facilidad
+Una vez que tus ediciones estén completas, guarda tu foto en alta calidad o compártela instantáneamente con amigos y en redes sociales. FixPic muestra automáticamente las dimensiones de la imagen y los detalles del archivo para que mantengas el control de la resolución y el tamaño en cada paso.
+🔍 ¿Por qué elegir FixPic?
+✅ Rápida, ligera y fácil de usar
+✅ Recorta y redimensiona imágenes con precisión
+✅ Ajusta brillo, contraste y saturación
+✅ Aplica filtros de desenfoque y sepia
+✅ Soporta tanto inglés como portugués
+✅ Temas claro y oscuro para tu preferencia
+✅ Visualiza y gestiona tus imágenes editadas en una galería integrada
+✅ Diseñada con los principios de diseño modernos de Android (Material You)
+🖼️ Perfecto para Todo Uso
+FixPic es ideal para cualquiera que quiera:
+ * Preparar imágenes para publicaciones en redes sociales o miniaturas
+ * Optimizar fotos antes de enviarlas por mensajes o correos electrónicos
+ * Ajustar las proporciones de las fotos para diseño o documentación
+ * Crear ediciones nítidas y de aspecto profesional directamente desde su dispositivo Android
+🌟 Simple. Elegante. Eficiente.
+FixPic no es solo otro editor de fotos, es tu conjunto completo de herramientas de imagen. Diseñado con esmero y construido para el rendimiento, proporciona todas las herramientas de edición esenciales que necesitas, manteniendo la interfaz limpia y libre de distracciones.
+Comienza a transformar tus fotos hoy con FixPic, el editor de imágenes potente e intuitivo para Android que hace que la edición sea tan fácil como debería ser.

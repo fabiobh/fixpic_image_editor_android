@@ -15,8 +15,8 @@ android {
         applicationId = "com.uaialternativa.imageeditor"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 4
+        versionName = "1.0.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -77,12 +77,18 @@ dependencies {
     // Coil for image loading
     implementation(libs.coil.compose)
     
+    // ExifInterface for image orientation handling
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
+    
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
     
     // Serialization
     implementation(libs.kotlinx.serialization.json)
+    
+    // LeakCanary for memory leak detection (debug builds only)
+    debugImplementation(libs.leakcanary.android)
     
     // Testing dependencies
     testImplementation(libs.junit)
