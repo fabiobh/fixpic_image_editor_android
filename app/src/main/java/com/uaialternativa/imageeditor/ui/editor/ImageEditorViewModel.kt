@@ -12,6 +12,7 @@ import com.uaialternativa.imageeditor.domain.usecase.CropImageUseCase
 import com.uaialternativa.imageeditor.domain.usecase.LoadImageUseCase
 import com.uaialternativa.imageeditor.domain.usecase.ResizeImageUseCase
 import com.uaialternativa.imageeditor.domain.usecase.SaveImageUseCase
+import com.uaialternativa.imageeditor.data.preferences.ReviewPreferenceManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,7 +31,8 @@ class ImageEditorViewModel @Inject constructor(
     private val applyFilterUseCase: ApplyFilterUseCase,
     private val cropImageUseCase: CropImageUseCase,
     private val resizeImageUseCase: ResizeImageUseCase,
-    private val saveImageUseCase: SaveImageUseCase
+    private val saveImageUseCase: SaveImageUseCase,
+    private val reviewPreferenceManager: ReviewPreferenceManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ImageEditorUiState())
@@ -551,9 +553,11 @@ class ImageEditorViewModel @Inject constructor(
                 appliedOperations = currentState.appliedOperations
             )
                 .onSuccess {
+                    reviewPreferenceManager.incrementSuccessActionCount()
                     _uiState.value = _uiState.value.copy(
                         isSaving = false,
-                        saveSuccess = true
+                        saveSuccess = true,
+                        shouldShowReview = reviewPreferenceManager.shouldShowReview()
                     )
                 }
                 .onFailure { error ->

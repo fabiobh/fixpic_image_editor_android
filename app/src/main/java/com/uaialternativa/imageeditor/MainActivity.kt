@@ -45,9 +45,19 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import com.uaialternativa.imageeditor.ui.common.AnalyticsManager
+import com.uaialternativa.imageeditor.ui.common.LocalAnalytics
+import com.uaialternativa.imageeditor.data.preferences.ReviewPreferenceManager
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    
+    @Inject
+    lateinit var analyticsManager: AnalyticsManager
+    
+    @Inject
+    lateinit var reviewPreferenceManager: ReviewPreferenceManager
     
     companion object {
         private const val PREFS_NAME = "app_preferences"
@@ -61,6 +71,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
+        // Increment app open count for Smart Review
+        reviewPreferenceManager.incrementAppOpenCount()
+        
         setContent {
             val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             
@@ -85,15 +99,19 @@ class MainActivity : ComponentActivity() {
             }
             
             ImageEditorTheme(darkTheme = darkTheme) {
-                ImageEditorApp(
-                    onLanguageChanged = ::changeLanguage,
-                    onThemeChanged = { newThemeMode ->
-                        themeMode = newThemeMode
-                        prefs.edit().putString(KEY_THEME_MODE, newThemeMode).apply()
-                    },
-                    currentThemeMode = themeMode,
-                    currentIsDarkTheme = darkTheme
-                )
+                androidx.compose.runtime.CompositionLocalProvider(
+                    LocalAnalytics provides analyticsManager
+                ) {
+                    ImageEditorApp(
+                        onLanguageChanged = ::changeLanguage,
+                        onThemeChanged = { newThemeMode ->
+                            themeMode = newThemeMode
+                            prefs.edit().putString(KEY_THEME_MODE, newThemeMode).apply()
+                        },
+                        currentThemeMode = themeMode,
+                        currentIsDarkTheme = darkTheme
+                    )
+                }
             }
         }
     }

@@ -153,5 +153,20 @@
     <string name="app_name_label">Nome do App</string>
     <string name="version_label">Versão</string>
     <string name="build_number_label">Número da Build</string>
+    <string name="rate_us_label">Avalie-nos</string>
+    <string name="rate_us_description">Nos apoie avaliando o app na Play Store</string>
     <string name="app_description">Um editor de imagens poderoso e intuitivo para Android. Edite, corte, redimensione e aplique filtros às suas fotos com facilidade.</string>
+
+    <!-- Review Dialog -->
+    <string name="review_dialog_title">Você está gostando do FixPic?</string>
+    <string name="review_dialog_positive">Sim, estou amando!</string>
+    <string name="review_dialog_negative">Não muito</string>
+    
+    <!-- Feedback Dialog -->
+    <string name="feedback_dialog_title">Sinto muito em ouvir isso</string>
+    <string name="feedback_dialog_message">Você gostaria de explicar por que não gosta do app? Seu feedback nos ajuda a melhorar.</string>
+    <string name="feedback_dialog_positive">Sim, enviar feedback</string>
+    <string name="feedback_dialog_negative">Não, obrigado</string>
+    <string name="support_email_subject">Feedback do FixPic</string>
+    <string name="support_email_body">Olá, tenho um feedback sobre o FixPic:\n\n</string>
 </resources>

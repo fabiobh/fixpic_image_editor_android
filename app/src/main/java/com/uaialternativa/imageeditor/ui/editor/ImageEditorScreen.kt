@@ -86,6 +86,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.uaialternativa.imageeditor.R
 import com.uaialternativa.imageeditor.domain.model.EditingTool
+import com.uaialternativa.imageeditor.ui.common.LocalAnalytics
+import com.uaialternativa.imageeditor.ui.common.SmartReviewDialog
 import com.uaialternativa.imageeditor.ui.editor.crop.CropOverlay
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
@@ -105,10 +107,13 @@ fun ImageEditorScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showUnsavedChangesDialog by remember { mutableStateOf(false) }
+    var showReviewDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val analytics = LocalAnalytics.current
 
     // Handle back navigation with unsaved changes check
     BackHandler {
+        analytics.logButtonClick("back_button_hardware", "Editor")
         if (viewModel.hasUnsavedChanges()) {
             showUnsavedChangesDialog = true
         } else {
@@ -124,13 +129,24 @@ fun ImageEditorScreen(
         }
     }
 
-    // Show save success message and navigate back
+    // Show save success message and show review dialog
     LaunchedEffect(uiState.saveSuccess) {
         if (uiState.saveSuccess) {
             snackbarHostState.showSnackbar(context.getString(R.string.image_saved_successfully))
             viewModel.handleAction(ImageEditorAction.ClearSaveSuccess)
-            onNavigateBack()
+            if (uiState.shouldShowReview) {
+                showReviewDialog = true
+            }
         }
+    }
+
+    if (showReviewDialog) {
+        SmartReviewDialog(
+            onDismiss = {
+                showReviewDialog = false
+                onNavigateBack()
+            }
+        )
     }
 
     Scaffold(
@@ -234,6 +250,7 @@ private fun ImageEditorTopBar(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val analytics = LocalAnalytics.current
     TopAppBar(
         title = {
             Text(
@@ -243,7 +260,10 @@ private fun ImageEditorTopBar(
         },
         navigationIcon = {
             IconButton(
-                onClick = onNavigateBack,
+                onClick = {
+                    analytics.logButtonClick("editor_back", "Editor")
+                    onNavigateBack()
+                },
                 modifier = Modifier.semantics {
                     contentDescription = context.getString(R.string.navigate_back)
                 }
@@ -256,7 +276,10 @@ private fun ImageEditorTopBar(
         },
         actions = {
             IconButton(
-                onClick = onUndo,
+                onClick = {
+                    analytics.logButtonClick("editor_undo", "Editor")
+                    onUndo()
+                },
                 enabled = canUndo,
                 modifier = Modifier.semantics {
                     contentDescription = context.getString(R.string.undo_action)
@@ -274,7 +297,10 @@ private fun ImageEditorTopBar(
             }
             
             IconButton(
-                onClick = onRedo,
+                onClick = {
+                    analytics.logButtonClick("editor_redo", "Editor")
+                    onRedo()
+                },
                 enabled = canRedo,
                 modifier = Modifier.semantics {
                     contentDescription = context.getString(R.string.redo_action)
@@ -297,7 +323,9 @@ private fun ImageEditorTopBar(
         ),
         modifier = modifier
     )
-}/**
+}
+
+/**
  * Main image display area with loading and processing states
  */
 @Composable
@@ -463,6 +491,7 @@ private fun EditorToolbar(
     hasImage: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val analytics = LocalAnalytics.current
     Card(
         modifier = modifier,
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
@@ -482,6 +511,7 @@ private fun EditorToolbar(
                 isSelected = selectedTool == EditingTool.Crop,
                 enabled = hasImage,
                 onClick = { 
+                    analytics.logButtonClick("tool_crop", "Editor")
                     onToolSelected(
                         if (selectedTool == EditingTool.Crop) EditingTool.None 
                         else EditingTool.Crop
@@ -496,6 +526,7 @@ private fun EditorToolbar(
                 isSelected = selectedTool == EditingTool.Resize,
                 enabled = hasImage,
                 onClick = { 
+                    analytics.logButtonClick("tool_resize", "Editor")
                     onToolSelected(
                         if (selectedTool == EditingTool.Resize) EditingTool.None 
                         else EditingTool.Resize
@@ -510,6 +541,7 @@ private fun EditorToolbar(
                 isSelected = selectedTool == EditingTool.Filter,
                 enabled = hasImage,
                 onClick = { 
+                    analytics.logButtonClick("tool_filter", "Editor")
                     onToolSelected(
                         if (selectedTool == EditingTool.Filter) EditingTool.None 
                         else EditingTool.Filter
@@ -519,7 +551,10 @@ private fun EditorToolbar(
             
             // Save button
             SaveButton(
-                onClick = onSave,
+                onClick = {
+                    analytics.logButtonClick("editor_save", "Editor")
+                    onSave()
+                },
                 isSaving = isSaving,
                 enabled = hasImage
             )
@@ -653,9 +688,10 @@ private fun SaveButton(
             fontWeight = FontWeight.Medium
         )
     }
-}/**
- *
- Bottom sheet panel with tool-specific controls
+}
+
+/**
+ * Bottom sheet panel with tool-specific controls
  */
 @Composable
 private fun ToolControlPanel(
@@ -813,6 +849,7 @@ private fun UnsavedChangesDialog(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val analytics = LocalAnalytics.current
     AlertDialog(
         onDismissRequest = onCancel,
         title = {
@@ -828,7 +865,10 @@ private fun UnsavedChangesDialog(
             )
         },
         confirmButton = {
-            Button(onClick = onSaveAndExit) {
+            Button(onClick = {
+                analytics.logButtonClick("unsaved_save", "Editor")
+                onSaveAndExit()
+            }) {
                 Text(stringResource(R.string.save_and_exit))
             }
         },
@@ -836,10 +876,16 @@ private fun UnsavedChangesDialog(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                TextButton(onClick = onDiscardAndExit) {
+                TextButton(onClick = {
+                    analytics.logButtonClick("unsaved_discard", "Editor")
+                    onDiscardAndExit()
+                }) {
                     Text(stringResource(R.string.discard_changes))
                 }
-                TextButton(onClick = onCancel) {
+                TextButton(onClick = {
+                    analytics.logButtonClick("unsaved_cancel", "Editor")
+                    onCancel()
+                }) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -862,6 +908,7 @@ internal fun ResizePanel(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val analytics = LocalAnalytics.current
     var widthText by remember(resizeWidth) { 
         mutableStateOf(resizeWidth?.toString() ?: currentWidth?.toString() ?: "") 
     }
@@ -1088,6 +1135,7 @@ internal fun ResizePanel(
         ) {
             OutlinedButton(
                 onClick = {
+                    analytics.logButtonClick("resize_cancel", "Editor")
                     keyboardController?.hide()
                     onCancel()
                 },
@@ -1104,6 +1152,7 @@ internal fun ResizePanel(
             
             Button(
                 onClick = {
+                    analytics.logButtonClick("resize_apply", "Editor")
                     keyboardController?.hide()
                     onApplyResize()
                 },
@@ -1141,6 +1190,7 @@ private fun FilterPanel(
     isFilterApplied: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    val analytics = LocalAnalytics.current
     Card(
         modifier = modifier,
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -1168,7 +1218,10 @@ private fun FilterPanel(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     OutlinedButton(
-                        onClick = onCancel,
+                        onClick = {
+                            analytics.logButtonClick("filter_cancel", "Editor")
+                            onCancel()
+                        },
                         modifier = Modifier.height(36.dp)
                     ) {
                         Icon(
@@ -1181,7 +1234,10 @@ private fun FilterPanel(
                     }
                     
                     Button(
-                        onClick = onApplyFilter,
+                        onClick = {
+                            analytics.logButtonClick("filter_apply", "Editor")
+                            onApplyFilter()
+                        },
                         enabled = selectedFilter != null,
                         modifier = Modifier.height(36.dp)
                     ) {
@@ -1208,7 +1264,10 @@ private fun FilterPanel(
                     CompactFilterCard(
                         filterType = filterType,
                         isSelected = selectedFilter == filterType,
-                        onClick = { onFilterSelected(filterType) }
+                        onClick = { 
+                            analytics.logButtonClick("filter_select_${filterType.name.lowercase()}", "Editor")
+                            onFilterSelected(filterType) 
+                        }
                     )
                 }
             }
@@ -1258,7 +1317,10 @@ private fun FilterPanel(
                     )
                     if (appliedFilters.size > 1) {
                         TextButton(
-                            onClick = onClearAllFilters,
+                            onClick = {
+                                analytics.logButtonClick("filter_clear_all", "Editor")
+                                onClearAllFilters()
+                            },
                             modifier = Modifier.height(32.dp)
                         ) {
                             Text(
@@ -1276,7 +1338,10 @@ private fun FilterPanel(
                     items(appliedFilters) { appliedFilter ->
                         CompactAppliedFilterChip(
                             appliedFilter = appliedFilter,
-                            onRemove = { onRemoveFilter(appliedFilter.id) }
+                            onRemove = { 
+                                analytics.logButtonClick("filter_remove_${appliedFilter.filterType.name.lowercase()}", "Editor")
+                                onRemoveFilter(appliedFilter.id) 
+                            }
                         )
                     }
                 }
@@ -1452,6 +1517,7 @@ internal fun CropPanel(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val analytics = LocalAnalytics.current
     var localCropBounds by remember(currentWidth, currentHeight) {
         mutableStateOf(
             cropBounds ?: if (currentWidth != null && currentHeight != null) {
@@ -1487,7 +1553,10 @@ internal fun CropPanel(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             OutlinedButton(
-                onClick = onCancel,
+                onClick = {
+                    analytics.logButtonClick("crop_cancel", "Editor")
+                    onCancel()
+                },
                 modifier = Modifier.weight(1f)
             ) {
                 Icon(
@@ -1500,7 +1569,10 @@ internal fun CropPanel(
             }
             
             Button(
-                onClick = onApplyCrop,
+                onClick = {
+                    analytics.logButtonClick("crop_apply", "Editor")
+                    onApplyCrop()
+                },
                 enabled = localCropBounds != null,
                 modifier = Modifier.weight(1f)
             ) {

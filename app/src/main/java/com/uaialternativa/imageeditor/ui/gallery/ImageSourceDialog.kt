@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.uaialternativa.imageeditor.R
+import com.uaialternativa.imageeditor.ui.common.LocalAnalytics
 
 /**
  * Dialog for choosing image source (camera or gallery)
@@ -37,6 +38,7 @@ fun ImageSourceDialog(
     onChooseFromGallery: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val analytics = LocalAnalytics.current
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = modifier,
@@ -57,12 +59,13 @@ fun ImageSourceDialog(
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
                 )
-                
+
                 Spacer(modifier = Modifier.height(24.dp))
-                
+
                 // Take Photo Option
                 TextButton(
                     onClick = {
+                        analytics.logButtonClick("source_camera", "ImageSourceDialog")
                         onDismiss()
                         onTakePhoto()
                     },
@@ -87,12 +90,13 @@ fun ImageSourceDialog(
                         )
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 // Choose from Gallery Option
                 TextButton(
                     onClick = {
+                        analytics.logButtonClick("source_gallery", "ImageSourceDialog")
                         onDismiss()
                         onChooseFromGallery()
                     },
@@ -117,12 +121,15 @@ fun ImageSourceDialog(
                         )
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 // Cancel Button
                 TextButton(
-                    onClick = onDismiss,
+                    onClick = {
+                        analytics.logButtonClick("source_cancel", "ImageSourceDialog")
+                        onDismiss()
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(

@@ -1,0 +1,11 @@
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = ["[console]::beep"]
+decision = "allow"
+priority = 100
+
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = ".*Windows\\.UI\\.Notifications.*"
+decision = "allow"
+priority = 100

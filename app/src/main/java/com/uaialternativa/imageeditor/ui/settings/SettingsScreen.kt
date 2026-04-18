@@ -1,5 +1,7 @@
 package com.uaialternativa.imageeditor.ui.settings
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +22,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,6 +46,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.uaialternativa.imageeditor.R
+import com.uaialternativa.imageeditor.ui.common.LocalAnalytics
 
 /**
  * Settings screen with language selector, theme selector, and app information
@@ -57,6 +62,7 @@ fun SettingsScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val analytics = LocalAnalytics.current
     
     // Calculate current language state
     val isPortuguese = remember(context) {
@@ -75,7 +81,10 @@ fun SettingsScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = {
+                        analytics.logButtonClick("settings_back", "Settings")
+                        onNavigateBack()
+                    }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = stringResource(R.string.navigate_back)
@@ -105,7 +114,10 @@ fun SettingsScreen(
             ) {
                 LanguageSelector(
                     isPortuguese = isPortuguese,
-                    onLanguageSelected = onLanguageSelected
+                    onLanguageSelected = { lang ->
+                        analytics.logButtonClick("settings_language_$lang", "Settings")
+                        onLanguageSelected(lang)
+                    }
                 )
             }
             
@@ -117,8 +129,58 @@ fun SettingsScreen(
                 ThemeSelector(
                     currentThemeMode = currentThemeMode,
                     currentIsDarkTheme = currentIsDarkTheme,
-                    onThemeSelected = onThemeSelected
+                    onThemeSelected = { theme ->
+                        analytics.logButtonClick("settings_theme_$theme", "Settings")
+                        onThemeSelected(theme)
+                    }
                 )
+            }
+
+            // Rate Us Section
+            SettingsSection(
+                title = stringResource(R.string.rate_us_label),
+                icon = Icons.Default.Star
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(R.string.rate_us_description),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    Button(
+                        onClick = {
+                            analytics.logButtonClick("settings_rate_us", "Settings")
+                            val packageName = context.packageName
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                data = Uri.parse("market://details?id=$packageName")
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            try {
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                // Fallback to browser if Play Store is not installed
+                                val browserIntent = Intent(Intent.ACTION_VIEW).apply {
+                                    data = Uri.parse("https://play.google.com/store/apps/details?id=$packageName")
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                }
+                                context.startActivity(browserIntent)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = stringResource(R.string.rate_us_label))
+                    }
+                }
             }
             
             // App Information Section

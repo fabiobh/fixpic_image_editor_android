@@ -30,7 +30,8 @@ data class ImageEditorUiState(
     val isSaving: Boolean = false,
     val saveSuccess: Boolean = false,
     val isFilterApplied: Boolean = false,
-    val previewImage: Bitmap? = null
+    val previewImage: Bitmap? = null,
+    val shouldShowReview: Boolean = false
 )
 
 /**

@@ -64,6 +64,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.uaialternativa.imageeditor.R
 import com.uaialternativa.imageeditor.domain.model.SavedImage
+import com.uaialternativa.imageeditor.ui.common.LocalAnalytics
 
 import java.io.File
 import java.text.SimpleDateFormat
@@ -98,6 +99,7 @@ fun GalleryScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val analytics = LocalAnalytics.current
     
     // Cache context-dependent values to avoid repeated access
     val addImageDescription = stringResource(R.string.add_image_description)
@@ -137,7 +139,10 @@ fun GalleryScreen(
                 },
                 actions = {
                     com.uaialternativa.imageeditor.ui.common.SettingsMenu(
-                        onSettingsClicked = onSettingsClicked
+                        onSettingsClicked = {
+                            analytics.logButtonClick("settings_menu", "Gallery")
+                            onSettingsClicked()
+                        }
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -148,7 +153,10 @@ fun GalleryScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onAddImageClicked,
+                onClick = {
+                    analytics.logButtonClick("add_image", "Gallery")
+                    onAddImageClicked()
+                },
                 modifier = Modifier.semantics {
                     contentDescription = addImageDescription
                 }
@@ -330,6 +338,7 @@ private fun ImageGridItem(
 ) {
     var showContextMenu by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val analytics = LocalAnalytics.current
     
     val dateFormatter = remember {
         SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
@@ -338,7 +347,10 @@ private fun ImageGridItem(
     Card(
         modifier = modifier
             .aspectRatio(1f)
-            .clickable { showContextMenu = true }
+            .clickable { 
+                analytics.logButtonClick("gallery_item_click", "Gallery")
+                showContextMenu = true 
+            }
             .semantics {
                 contentDescription = "Image ${image.fileName}, created ${dateFormatter.format(Date(image.createdAt))}"
             },
@@ -412,6 +424,7 @@ private fun ImageGridItem(
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.edit)) },
                     onClick = {
+                        analytics.logButtonClick("gallery_item_edit", "Gallery")
                         showContextMenu = false
                         onEdit()
                     },
@@ -426,6 +439,7 @@ private fun ImageGridItem(
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.share)) },
                     onClick = {
+                        analytics.logButtonClick("gallery_item_share", "Gallery")
                         showContextMenu = false
                         onShare()
                     },
@@ -440,6 +454,7 @@ private fun ImageGridItem(
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.delete)) },
                     onClick = {
+                        analytics.logButtonClick("gallery_item_delete", "Gallery")
                         showContextMenu = false
                         onDelete()
                     },
