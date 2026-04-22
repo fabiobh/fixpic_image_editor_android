@@ -25,6 +25,14 @@ fun SmartReviewDialog(
     val context = LocalContext.current
     val analytics = LocalAnalytics.current
     var currentStep by remember { mutableStateOf(ReviewStep.LIKE_APP) }
+    
+    // Log when the dialog steps are shown
+    androidx.compose.runtime.LaunchedEffect(currentStep) {
+        when (currentStep) {
+            ReviewStep.LIKE_APP -> analytics.logDialogShow("smart_review_like")
+            ReviewStep.FEEDBACK_PROMPT -> analytics.logDialogShow("smart_review_feedback")
+        }
+    }
 
     when (currentStep) {
         ReviewStep.LIKE_APP -> {
@@ -101,7 +109,7 @@ private fun Context.findActivity(): ComponentActivity? = when (this) {
 }
 
 private fun sendFeedbackEmail(context: Context) {
-    val email = "uaialternativa@gmail.com"
+    val email = context.getString(R.string.support_email)
     val subject = context.getString(R.string.support_email_subject)
     val body = context.getString(R.string.support_email_body)
     

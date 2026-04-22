@@ -39,6 +39,10 @@ fun ImageSourceDialog(
     modifier: Modifier = Modifier
 ) {
     val analytics = LocalAnalytics.current
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        analytics.logDialogShow("image_source_selection")
+    }
+
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = modifier,

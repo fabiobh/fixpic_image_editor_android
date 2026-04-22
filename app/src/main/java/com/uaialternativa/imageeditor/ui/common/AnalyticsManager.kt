@@ -21,6 +21,13 @@ class AnalyticsManager @Inject constructor(
         firebaseAnalytics.logEvent("button_click", bundle)
     }
 
+    fun logDialogShow(dialogId: String) {
+        val bundle = Bundle().apply {
+            putString("dialog_id", dialogId)
+        }
+        firebaseAnalytics.logEvent("dialog_show", bundle)
+    }
+
     fun logEvent(eventName: String, params: Bundle? = null) {
         firebaseAnalytics.logEvent(eventName, params)
     }

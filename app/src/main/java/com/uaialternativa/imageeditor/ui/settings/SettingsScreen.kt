@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -179,6 +180,54 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(text = stringResource(R.string.rate_us_label))
+                    }
+                }
+            }
+            
+            // Support Section
+            SettingsSection(
+                title = stringResource(R.string.support_label),
+                icon = Icons.Default.Email
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(R.string.support_email),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    Button(
+                        onClick = {
+                            analytics.logButtonClick("settings_send_feedback", "Settings")
+                            val email = context.getString(R.string.support_email)
+                            val subject = context.getString(R.string.support_email_subject)
+                            val body = context.getString(R.string.support_email_body)
+                            
+                            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                data = Uri.parse("mailto:")
+                                putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
+                                putExtra(Intent.EXTRA_SUBJECT, subject)
+                                putExtra(Intent.EXTRA_TEXT, body)
+                            }
+                            
+                            try {
+                                context.startActivity(Intent.createChooser(intent, context.getString(R.string.send_feedback_label)))
+                            } catch (e: Exception) {
+                                // Handle failure
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Email,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = stringResource(R.string.send_feedback_label))
                     }
                 }
             }
@@ -426,6 +475,28 @@ private fun ThemeSelector(
  */
 @Composable
 private fun AppInformation() {
+    val context = LocalContext.current
+    val packageInfo = remember(context) {
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                context.packageManager.getPackageInfo(context.packageName, android.content.pm.PackageManager.PackageInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION")
+                context.packageManager.getPackageInfo(context.packageName, 0)
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+    
+    val versionName = packageInfo?.versionName ?: "1.0.6"
+    val versionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+        packageInfo?.longVersionCode?.toString() ?: "6"
+    } else {
+        @Suppress("DEPRECATION")
+        packageInfo?.versionCode?.toString() ?: "6"
+    }
+
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -436,12 +507,12 @@ private fun AppInformation() {
         
         InfoRow(
             label = stringResource(R.string.version_label),
-            value = "1.0"
+            value = versionName
         )
         
         InfoRow(
             label = stringResource(R.string.build_number_label),
-            value = "1"
+            value = versionCode
         )
         
         HorizontalDivider(

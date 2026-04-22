@@ -850,6 +850,11 @@ private fun UnsavedChangesDialog(
     modifier: Modifier = Modifier
 ) {
     val analytics = LocalAnalytics.current
+    
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        analytics.logDialogShow("unsaved_changes")
+    }
+
     AlertDialog(
         onDismissRequest = onCancel,
         title = {

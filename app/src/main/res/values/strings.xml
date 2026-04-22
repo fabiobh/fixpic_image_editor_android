@@ -169,4 +169,7 @@
     <string name="feedback_dialog_negative">No, thanks</string>
     <string name="support_email_subject">FixPic Feedback</string>
     <string name="support_email_body">Hi, I have some feedback about FixPic:\n\n</string>
+    <string name="support_email">uaialternativa@gmail.com</string>
+    <string name="support_label">Support</string>
+    <string name="send_feedback_label">Send Feedback</string>
 </resources>

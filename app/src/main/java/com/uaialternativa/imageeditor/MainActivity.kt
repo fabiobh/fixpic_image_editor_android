@@ -428,6 +428,10 @@ private fun PermissionRationaleDialog(
     onGrantPermission: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val analytics = LocalAnalytics.current
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        analytics.logDialogShow("permission_rationale")
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -462,6 +466,10 @@ private fun PermissionRationaleDialog(
 private fun PermissionDeniedDialog(
     onDismiss: () -> Unit
 ) {
+    val analytics = LocalAnalytics.current
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        analytics.logDialogShow("permission_denied")
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -492,6 +500,10 @@ private fun CameraPermissionRationaleDialog(
     onGrantPermission: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val analytics = LocalAnalytics.current
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        analytics.logDialogShow("camera_permission_rationale")
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -526,6 +538,10 @@ private fun CameraPermissionRationaleDialog(
 private fun CameraPermissionDeniedDialog(
     onDismiss: () -> Unit
 ) {
+    val analytics = LocalAnalytics.current
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        analytics.logDialogShow("camera_permission_denied")
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
